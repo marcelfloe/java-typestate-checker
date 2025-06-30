@@ -3,6 +3,7 @@ plugins {
 }
 
 task copySources(type: Copy) {
+  dependsOn ':generateGrammarSource'
     includeEmptyDirs = false
     doFirst {
         // Delete the directory in case a previously copied file should no longer be present
