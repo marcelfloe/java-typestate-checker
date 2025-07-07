@@ -35,8 +35,8 @@ class Resolver(checker: SourceChecker) {
   private val modules = Modules.instance(ctx)
   private val fileManager = ctx.get(JavaFileManager::class.java) as JavacFileManager
 
-  private val findIdent = Resolve::class.java.getDeclaredMethod("findIdent", Env::class.java, Name::class.java, Kinds.KindSelector::class.java)
-  private val findIdentInPackage = Resolve::class.java.getDeclaredMethod("findIdentInPackage", Env::class.java, TypeSymbol::class.java, Name::class.java, Kinds.KindSelector::class.java)
+  private val findIdent = Resolve::class.java.getDeclaredMethod("findIdentInternal", Env::class.java, Name::class.java, Kinds.KindSelector::class.java)
+  private val findIdentInPackage = Resolve::class.java.getDeclaredMethod("findIdentInPackageInternal", Env::class.java, TypeSymbol::class.java, Name::class.java, Kinds.KindSelector::class.java)
 
   init {
     findIdent.isAccessible = true
@@ -65,12 +65,9 @@ class Resolver(checker: SourceChecker) {
     val tree = maker.TopLevel(if (pkg == null) imports else imports.prepend(pkg))
     tree.sourcefile = fileManager.getJavaFileObject(userPath)
 
-    return if (modules.enter(List.of(tree), null)) {
-      enter.complete(List.of(tree), null)
-      getEnvForPath(TreePath(tree))
-    } else {
-      null
-    }
+    tree.modle = modules.defaultModule
+    enter.complete(List.of(tree), null)
+    return getEnvForPath(TreePath(tree))
   }
 
   private fun getEnvForPath(path: TreePath): Env<AttrContext>? {
