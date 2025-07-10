@@ -1,0 +1,7 @@
+import jatyc.lib.Ensures;
+
+package java.util;
+
+public interface List<E> {
+  @Ensures("HasNext") Iterator<E> iterator();
+}

@@ -1,0 +1,17 @@
+import jatyc.lib.Ensures;
+
+package java.lang;
+
+public interface Iterable<E> {
+  @Ensures("HasNext") Iterator<E> iterator();
+}
+
+package java.util;
+
+public interface Collection<E> {
+  @Ensures("HasNext") Iterator<E> iterator();
+}
+
+public interface List<E> {
+  @Ensures("HasNext") Iterator<E> iterator();
+}
