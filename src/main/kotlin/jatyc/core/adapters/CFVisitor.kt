@@ -8,6 +8,7 @@ import jatyc.core.TypeIntroducer
 import jatyc.core.TypecheckUtils
 import jatyc.core.cfg.ClassDeclAndCompanion
 import jatyc.core.linearmode.LinearModeClassAnalysis
+import jatyc.key.KeyAdapter
 import jatyc.utils.JTCUtils
 import org.checkerframework.framework.source.SourceVisitor
 import org.checkerframework.javacutil.AnnotationUtils
