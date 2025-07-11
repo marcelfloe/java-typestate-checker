@@ -49,6 +49,7 @@ class CFVisitor(val checker: JavaTypestateChecker) : SourceVisitor<Void?, Void?>
   }
 
   private fun analyze(clazz: ClassDeclAndCompanion) {
+    KeyAdapter.test(clazz)
     classAnalysis.analyze(clazz.nonStatic)
     classAnalysis.analyze(clazz.static)
     classAnalysis.checkMethods(clazz.nonStatic)
