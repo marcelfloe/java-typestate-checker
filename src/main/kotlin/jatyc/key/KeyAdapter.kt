@@ -67,7 +67,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   fun put(root: CompilationUnitTree) {
     val sourcePath = root.sourceFile.toString()
     if (sourceFiles.contains(sourcePath)) return
-    println(sourcePath)
     sourceFiles.add(sourcePath)
     compilationUnits[sourcePath] = root
 
