@@ -17,6 +17,10 @@ import de.uka.ilkd.key.util.KeYTypeUtil;
 import de.uka.ilkd.key.util.MiscTools;
 
 import org.key_project.util.collection.ImmutableSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+//TODO: find memory leak
 
 /**
  * Class which proves all proof obligations of the source file using KeY.
@@ -25,6 +29,7 @@ import org.key_project.util.collection.ImmutableSet;
 public class KeyProver {
 
   private static int maxSteps_;
+  private static final Logger LOGGER = LoggerFactory.getLogger(KeyProver.class);
 
   /**
    * The entry point of the prover.
@@ -33,16 +38,24 @@ public class KeyProver {
    * @return true if the proof was successful, false if not
    */
   public static boolean proofFile(File file) {
-    System.out.println(file.toString());
+    System.out.println("LENGTH: " + file.length());
+    LOGGER.info("Starting KeY example application.");
     maxSteps_ = 10000;
+    KeYEnvironment<?> env = null;
     try {
       // Ensure that Taclets are parsed
-      KeYEnvironment<?> env = setupEnvironment(file);
+      env = setupEnvironment(file);
       return proveEnvironmemt(env);
     } catch (ProblemLoaderException e) {
+      LOGGER.info("Exception at '{}'", file, e);
       System.out.println("EXEPTION IN PROBLEM LOADER: " + e.getMessage());
       //proofing wasn't successful
       return false;
+    } finally {
+      if (env != null) {
+        env.dispose();
+      }
+      System.out.println("DISPOSED");
     }
   }
 
@@ -77,11 +90,15 @@ public class KeyProver {
     File bootClassPath = null; // Optionally: Different default specifications for Java API
     List<File> includes = null; // Optionally: Additional includes to consider
 
+    System.out.println("ProofSettings upcoming");
     if (!ProofSettings.isChoiceSettingInitialised()) {
+      System.out.println("ProofSettings choice setting not yet initialized");
       KeYEnvironment<?> env =
         KeYEnvironment.load(file, classPaths, bootClassPath, includes);
       env.dispose();
     }
+    System.out.println("ProofSettings choice setting initialized");
+
     // Set Taclet options
     ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
     Map<String, String> oldSettings = choiceSettings.getDefaultChoices();
@@ -101,11 +118,15 @@ public class KeyProver {
    */
   private static boolean proveEnvironmemt(KeYEnvironment<?> env) {
     final List<Contract> proofContracts = getContracts(env);
-    System.out.println("Found contracts:" + proofContracts.size());
-    for (Contract contract : proofContracts) {
-      if (!proveContract(env, contract)) return false; //contract can't be proved
+    //System.out.println("Found contracts:" + proofContracts.size());
+    try {
+      for (Contract contract : proofContracts) {
+        LOGGER.info("Found contract '" + contract.getDisplayName());
+        if (!proveContract(env, contract)) return false; //contract can't be proved
+      }
+    } finally {
+      env.dispose(); // Ensure always that all instances of KeYEnvironment are disposed
     }
-    env.dispose(); // Ensure always that all instances of KeYEnvironment are disposed
 
     return true; //all contracts have been proven
   }
@@ -176,10 +197,15 @@ public class KeyProver {
       env.getUi().getProofControl().startAndWaitForAutoMode(proof);
       // Show proof result
       closed = proof.openGoals().isEmpty();
+      LOGGER.info("Contract '" + contract.getDisplayName() + "' of "
+        + contract.getTarget() + " is " + (closed ? "verified" : "still open")
+        + ".");
       if (!closed) {
         System.out.println(proof.openGoals());
       }
     } catch (ProofInputException e) {
+      LOGGER.error("Exception at {} of {}", contract.getDisplayName(),
+        contract.getTarget());
       System.out.println("EXCEPTION WITH PROOF INPUT: " + e.getMessage());
         contract.getTarget();
     } finally {
