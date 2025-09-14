@@ -1,4 +1,4 @@
-// Generated from java-escape by ANTLR 4.11.1
+// Generated from jatyc/typestate/parser/Typestate.g4 by ANTLR 4.13.2
 
 package jatyc.typestate.parser;
 import jatyc.typestate.*;
@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "this-escape"})
 public class TypestateParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.11.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -89,7 +89,7 @@ public class TypestateParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "java-escape"; }
+	public String getGrammarFileName() { return "Typestate.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -686,7 +686,7 @@ public class TypestateParser extends Parser {
 			setState(120);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0)) {
 				{
 				setState(105);
 				((StateContext)_localctx).method = method();
@@ -803,7 +803,7 @@ public class TypestateParser extends Parser {
 			setState(136);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0)) {
 				{
 				setState(128);
 				((MethodContext)_localctx).javaType = javaType(0);
