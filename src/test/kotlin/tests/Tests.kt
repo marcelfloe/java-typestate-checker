@@ -3,6 +3,7 @@ package tests
 import org.junit.runners.Parameterized.Parameters
 import java.io.File
 
+//tests for linked list and generics don't work
 val ignore = listOf("linked-list", "generics")
 val only = emptyList<String>()
 
