@@ -24,10 +24,12 @@ class CFVisitor(val checker: JavaTypestateChecker) : SourceVisitor<Void?, Void?>
   private val classes = mutableMapOf<String, ClassDeclAndCompanion>()
   private val classAnalysis = LinearModeClassAnalysis(checker.utils, classes)
   private val pending = LinkedList<Pair<CompilationUnitTree, ClassDeclAndCompanion>>()
+  val keyAdapter = KeyAdapter(this.checker)
 
   override fun setRoot(root: CompilationUnitTree) {
     super.setRoot(root)
     adapter.setRoot(root)
+    keyAdapter.put(root)
   }
 
   override fun visitClass(classTree: ClassTree, p: Void?): Void? {
@@ -50,7 +52,6 @@ class CFVisitor(val checker: JavaTypestateChecker) : SourceVisitor<Void?, Void?>
   }
 
   private fun analyze(clazz: ClassDeclAndCompanion) {
-    KeyAdapter.test(clazz)
     classAnalysis.analyze(clazz.nonStatic)
     classAnalysis.analyze(clazz.static)
     classAnalysis.checkMethods(clazz.nonStatic)
