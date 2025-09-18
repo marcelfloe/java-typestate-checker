@@ -29,7 +29,7 @@ public record ContractInformation(List<String> requiresStatements, List<String> 
     if (assignableStatements.isEmpty()) return assignable.toString();
     assignable.append(assignableStatements.get(0));
     for (int i = 1; i < assignableStatements.size(); i++) {
-      assignable.append(" ,").append(assignableStatements.get(i));
+      assignable.append(", ").append(assignableStatements.get(i));
     }
     return assignable.toString();
   }

@@ -58,52 +58,27 @@ public class ContractCreator extends Pretty {
 
   private void createAndLogContract(JCTree.JCMethodDecl tree) {
     if (enclClassType == null) return;
-    System.out.println("-----------------------------------------------");
     String classType = checker.getUtils().typeIntroducer.getJavaType(enclClassType) + "";
-    System.out.println("ClassType: " + classType);
-    String methodName = tree.name + "";
-    System.out.println("MethodName: " + methodName);
 
     List<String> requiresAnnotations = new ArrayList<>();
     List<String> ensuresAnnotations = new ArrayList<>();
     List<String> assignableAnnotations = new ArrayList<>();
     getAnnotationInformation(requiresAnnotations, ensuresAnnotations, assignableAnnotations, tree);
-    requiresAnnotations.forEach(s -> System.out.println("RequiresAnnotations: " + s));
-    ensuresAnnotations.forEach(s -> System.out.println("EnsuresAnnotations: " + s));
-    assignableAnnotations.forEach(s -> System.out.println("AssignableAnnotations: " + s));
 
     List<String> requiresProtocol = new ArrayList<>();
     List<String> ensuresProtocol = new ArrayList<>();
     List<String> assignableProtocol = new ArrayList<>();
     getProtocolInformation(requiresProtocol, ensuresProtocol, assignableProtocol, tree);
-    requiresProtocol.forEach(s -> System.out.println("RequiresProtocol: " + s));
-    ensuresProtocol.forEach(s -> System.out.println("EnsuresProtocol: " + s));
-    assignableProtocol.forEach(s -> System.out.println("AssignableProtocol: " + s));
 
     ContractInformation annotationInformation = new ContractInformation(requiresAnnotations, ensuresAnnotations, assignableAnnotations);
     ContractInformation protocolInformation = new ContractInformation(requiresProtocol, ensuresProtocol, assignableProtocol);
-    System.out.println(annotationInformation);
-    System.out.println(protocolInformation);
 
     List<String> superTypes = getSuperTypes(enclClassType);
-    superTypes.forEach(st -> System.out.println("SuperType: " + st));
 
-    MethodSignature signature = new MethodSignature(classType, methodName, getParameterTypes(tree));
-    System.out.println(signature);
+    MethodSignature signature = createMethodSignature(tree, classType);
     MethodInformation methodInformation = new MethodInformation(signature, annotationInformation, protocolInformation, superTypes);
-    System.out.println(methodInformation);
-    System.out.println("-----------------------------------------------");
 
     contractLog.log(methodInformation);
-  }
-
-  private List<String> getParameterTypes(JCTree.JCMethodDecl tree) {
-    List<String> parameterTypes = new ArrayList<>();
-    if (tree.type == null) return parameterTypes;
-    //parameterTypes.add(tree.type.getReturnType() + "");
-    tree.type.getParameterTypes().stream().map(t -> t.baseType() + "").forEach(parameterTypes::add);
-    parameterTypes.forEach(pt -> System.out.println("ParameterType: " + pt));
-    return parameterTypes;
   }
 
   private List<String> getSuperTypes(Type type) {
@@ -179,7 +154,7 @@ public class ContractCreator extends Pretty {
       ensures.add(stateName + " == " + graph.getInitialState().getId());
     } else {
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>
-        set = quadMap.getBMapping(new MethodSignature(enclClassType + "" ,methodName.toString(), tree.params.stream().map(param -> param.type + "").toList()));
+        set = quadMap.getBMapping(createMethodSignature(tree, enclClassType + ""));
       if (set == null) return;
       List<String> originalStates = new ArrayList<>(set.size());
       for (QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState> e : set) {
@@ -268,16 +243,17 @@ public class ContractCreator extends Pretty {
         String returnType = key.getReturnType().stringName();
         String methodName = key.getName();
         List<String> methodParameters = key.getArgs().stream().map(arg -> arg + "").toList();
+        MethodSignature methodSignature = new MethodSignature(enclClassType + "", methodName, methodParameters);
         if (value instanceof DecisionState) {
           ((DecisionState) value).getTransitions().forEach((k,v) -> {
             if (returnType.equals("boolean")) { //-> boolean
-              quadMap.map(originalState, new MethodSignature(enclClassType + "", methodName, methodParameters), new ReturnedValue(k.getLabel()), new NewState(v.getId() + ""));
+              quadMap.map(originalState, methodSignature, new ReturnedValue(k.getLabel()), new NewState(v.getId() + ""));
             } else { //-> enum
-              quadMap.map(originalState, new MethodSignature(enclClassType + "", methodName, methodParameters), new ReturnedValue(returnType + "." + k.getLabel()), new NewState(v.getId() + ""));
+              quadMap.map(originalState, methodSignature, new ReturnedValue(returnType + "." + k.getLabel()), new NewState(v.getId() + ""));
             }
           });
         } else if (value instanceof State) {
-          quadMap.map(originalState, new MethodSignature(enclClassType + "", methodName, methodParameters), null, new NewState(((State) value).getId() + ""));
+          quadMap.map(originalState, methodSignature, null, new NewState(((State) value).getId() + ""));
         } else {
           System.out.println("ERROR: " + value);
         }
@@ -291,4 +267,7 @@ public class ContractCreator extends Pretty {
   protected record ReturnedValue (String returnedValue) {}
   protected record NewState (String newStateId) {}
 
+  public static MethodSignature createMethodSignature(JCTree.JCMethodDecl tree, String enclosingClass) {
+    return new MethodSignature(enclosingClass, tree.name + "", tree.params.map(p -> p.type + ""));
+  }
 }

@@ -32,6 +32,6 @@ public record MethodInformation(MethodSignature signature, ContractInformation a
   public String getAssignableWithProtocol() {
     if (annotationInformation().getAssignable().isBlank()) return protocolInformation.getAssignable();
     if (protocolInformation.getAssignable().isBlank()) return annotationInformation.getAssignable();
-    return annotationInformation().getAssignable() + " ," + protocolInformation.getAssignable();
+    return annotationInformation().getAssignable() + ", " + protocolInformation.getAssignable();
   }
 }

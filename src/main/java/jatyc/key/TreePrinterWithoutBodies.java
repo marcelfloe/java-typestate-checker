@@ -22,7 +22,7 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
   //annotations and imports are managed by super class
 
   @Override
-  public void visitClassDef(JCTree.JCClassDecl tree) {
+  public void visitClassDef(JCTree.JCClassDecl tree) { //initializing the ghost variable if a protocol exists
     Type prevClassType = enclClassType;
     enclClassType = tree.type;
     String prevGhostVar = ghostVar;
