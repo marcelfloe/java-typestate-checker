@@ -37,11 +37,17 @@ TODO:
  */
 
 
+/**
+ * This class is used to allow for error checking using KeY.
+ * When using KeY it is important that every file contains only one class.
+ */
 class KeyAdapter (val checker: JavaTypestateChecker) {
   val prover = KeyProver()
   val directory = TempDirectoryKey()
   private val sourceFiles = HashSet<String>()
   private val compilationUnits = HashMap<String, CompilationUnitTree>()
+  private val contractLog = ContractLog()
+  private var converted = false
 
   fun test(test: CompilationUnitTree) {
 
@@ -69,18 +75,38 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     if (sourceFiles.contains(sourcePath)) return
     sourceFiles.add(sourcePath)
     compilationUnits[sourcePath] = root
+  }
 
-    val fileName = root.sourceFile.name.split("\\").last().split(".")
+  fun convert() {
+    for (root in compilationUnits.values) { //creating all contracts for all given classes and their methods
+      if (root is JCTree) root.accept(ContractCreator(contractLog, checker))
+    }
 
-    val content : String = if (root is JCTree) {
-      val writer = StringWriter()
-      val printer = TreePrinterWithoutBodies(writer, true, checker)
-      root.accept(printer)
-      writer.toString()
-    } else {""}
+    for (root in compilationUnits.values) { //creating files for KeY
 
-    val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
+      val fileName = root.sourceFile.name.split("\\").last().split(".")
 
-    directory.putFile(fileName.first(), fileName.last(), content, packageName.split("."))
+      val content : String = if (root is JCTree) {
+        val writer = StringWriter()
+        val printer = TreePrinterWithoutBodies(writer, true, checker, contractLog)
+        root.accept(printer)
+        writer.toString()
+      } else {""}
+
+      print("\ncontent:\n$content")
+
+      val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
+
+      directory.putFile(fileName.first(), fileName.last(), content, packageName.split("."))
+
+    }
+  }
+
+  fun check() {
+    if (!converted) {
+      convert()
+      converted = true
+    }
+    //TODO: implement error checking
   }
 }

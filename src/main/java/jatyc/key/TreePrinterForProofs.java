@@ -11,9 +11,9 @@ import java.io.Writer;
 public class TreePrinterForProofs extends TreePrinterWithoutBodies {
   private TreePrinterWithoutProtocol methodPrinter;
 
-  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker) {
-    super(out, sourceOutput, checker);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker);
+  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
+    super(out, sourceOutput, checker, contractLog);
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker, contractLog);
   }
 
   @Override

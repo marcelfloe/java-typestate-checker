@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+
+//TODO: This class is probably useless as the functionality is covered by TreePrinterWithoutBody
+
 //TODO: include protocol information of "this"
 public class TreePrinterWithProtocol extends Pretty {
   private JavaTypestateChecker checker;
