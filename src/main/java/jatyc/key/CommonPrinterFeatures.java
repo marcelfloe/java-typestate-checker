@@ -48,7 +48,7 @@ public class CommonPrinterFeatures extends Pretty {
 
   @Override
   public void visitImport(JCTree.JCImport tree) {
-    if (tree.toString().matches(".+jatyc\\.lib.+\\r\\n")) {
+    if (tree.toString().matches(".+jatyc\\.lib.+\\r\\n")) { //removes any imports for typestate checker annotations
       return;
     }
     super.visitImport(tree);
@@ -56,9 +56,10 @@ public class CommonPrinterFeatures extends Pretty {
 
   protected void printTypestateAnnotationInformation(JCTree.JCMethodDecl tree, ClassUtils utils) {
     try {
-      Type treeType = tree.type;
+      if (tree == null || tree.restype == null) return;
+      Type treeType = tree.restype.type;
       if (treeType != null && utils.hasProtocol(treeType)) {
-        List<State> statesList = utils.getGraph(tree.type).getAllConcreteStates().stream().toList();
+        List<State> statesList = utils.getGraph(treeType).getAllConcreteStates().stream().toList();
 
         for (JCTree.JCAnnotation annotation : tree.mods.annotations) {
           String type = annotation.annotationType.toString();
@@ -66,7 +67,7 @@ public class CommonPrinterFeatures extends Pretty {
             List<String> stateName = getValueOnly(annotation.args.head);
             long stateId = getStateIndex(stateName.get(0), statesList);
             if (stateId == -1) continue; //state doesn't exist
-            printStateAnnotation(stateId);
+            printStateAnnotation(stateId, tree.type.getReturnType() + "");
           }
         }
       }
@@ -124,8 +125,8 @@ public class CommonPrinterFeatures extends Pretty {
     return null;
   }
 
-  protected void printStateAnnotation(long state) throws IOException {
-    print("//@ ensures \\result.state == " + state + ";\n");
+  protected void printStateAnnotation(long state, String paramClass) throws IOException {
+    printEnsuresComment("\\result." + paramClass + "State == " + state);
   }
 
   protected void printEnsuresAnnotation(long state, String paramName, String paramClass) throws IOException {
