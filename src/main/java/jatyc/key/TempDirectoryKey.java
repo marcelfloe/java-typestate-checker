@@ -9,6 +9,9 @@ import java.util.List;
 
 /**
  * Class which handles the Files used by KeY.
+ * <p>
+ * This class currently allows for multiple files to be replaced.
+ * However, this is not required, as only one contract needs proving per error message being checked.
  */
 public class TempDirectoryKey {
 
@@ -81,6 +84,7 @@ public class TempDirectoryKey {
 
   public void undoReplacements() {
     //multiple files might need replacement due to inheritance
+    // ^ actually not required, as the parent contract is copied to the child contract and only the child contract is being proven
     try {
       undoReplacementsDir(copyDirectory.toFile(), "");
     } catch (IOException e) {

@@ -2,6 +2,12 @@ package jatyc.key;
 
 import java.util.List;
 
+/**
+ * This class models the JML information of one contract.
+ * @param requiresStatements the requires-statements of the JML contract
+ * @param ensuresStatements the ensures-statements of the JML contract
+ * @param assignableStatements the assignable-statements of the JML contract
+ */
 public record ContractInformation(List<String> requiresStatements, List<String> ensuresStatements, List<String> assignableStatements) {
 
   public String getRequires() {

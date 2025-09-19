@@ -2,6 +2,13 @@ package jatyc.key;
 
 import java.util.List;
 
+/**
+ * This record models a method signature.
+ * @param classType the class containing the method
+ * @param methodName the name of the method
+ * @param parameterTypes the types of the parameters of the method
+ */
+
 public record MethodSignature(String classType, String methodName, List<String> parameterTypes) {
   @Override
   public boolean equals(Object obj) {
