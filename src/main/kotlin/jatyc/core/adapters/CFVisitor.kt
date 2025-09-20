@@ -3,9 +3,6 @@ package jatyc.core.adapters
 import com.sun.source.tree.*
 import com.sun.tools.javac.tree.JCTree
 import jatyc.JavaTypestateChecker
-import jatyc.core.JavaTypesHierarchy
-import jatyc.core.TypeIntroducer
-import jatyc.core.TypecheckUtils
 import jatyc.core.cfg.ClassDeclAndCompanion
 import jatyc.core.linearmode.LinearModeClassAnalysis
 import jatyc.key.KeyAdapter
@@ -24,7 +21,7 @@ class CFVisitor(val checker: JavaTypestateChecker) : SourceVisitor<Void?, Void?>
   private val classes = mutableMapOf<String, ClassDeclAndCompanion>()
   private val classAnalysis = LinearModeClassAnalysis(checker.utils, classes)
   private val pending = LinkedList<Pair<CompilationUnitTree, ClassDeclAndCompanion>>()
-  val keyAdapter = KeyAdapter(this.checker)
+  val keyAdapter = checker.keyAdapter
 
   override fun setRoot(root: CompilationUnitTree) {
     super.setRoot(root)

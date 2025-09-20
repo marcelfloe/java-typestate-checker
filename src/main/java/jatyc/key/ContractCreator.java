@@ -151,6 +151,8 @@ public class ContractCreator extends Pretty {
     Name methodName = tree.name;
     String stateName = enclClassType + "State";
     if (methodName.toString().equals("<init>")) {
+      //TODO: This might not apply to different constructors
+      // Are other constructors properly managed by the normal method handling?
       ensures.add(stateName + " == " + graph.getInitialState().getId());
     } else {
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>

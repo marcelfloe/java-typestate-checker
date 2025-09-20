@@ -2,8 +2,11 @@ package jatyc.key
 
 import com.sun.source.tree.*
 import com.sun.tools.javac.tree.JCTree
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit
 import jatyc.JavaTypestateChecker
 import java.io.StringWriter
+import java.nio.file.Path
+import kotlin.io.path.extension
 
 //TODO: provide method to start a proof for one method
 
@@ -74,7 +77,11 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     val sourcePath = root.sourceFile.toString()
     if (sourceFiles.contains(sourcePath)) return
     sourceFiles.add(sourcePath)
-    compilationUnits[sourcePath] = root
+    if (root is JCCompilationUnit) { //deep-cloning root to prevent information loss due to editing by the CFVisitor
+      val clone = getClone(root)
+      clone.accept(TreeCloner())
+      compilationUnits[sourcePath] = clone
+    }
   }
 
   fun convert() {
@@ -102,11 +109,72 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     }
   }
 
-  fun check() {
-    if (!converted) {
+  fun check(source: Any, messageKey: String, vararg args: Any?) : Boolean {
+    if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
+    /*
+    println("---Source---")
+    println(source)
+    println("pos(): " + source.pos())
+    println("pos: " + source.pos)
+    println("tag: " + source.tag)
+    println("type: " + source.type)
+    println("kind: " + source.kind)
+    println("javaClass: " + source.javaClass)
+    println("preferredPosition: " + source.preferredPosition)
+    println("startPosition: " + source.startPosition)
+    println("---MessageKey---")
+    println(messageKey)
+    println("---Args---")
+    args.iterator().forEach {
+      if (it != null) {
+        println(it.javaClass)
+      }
+    }
+    println("++++++++++")
+     */
+
+    if (!converted) { //creating files for KeY on first call
       convert()
       converted = true
     }
+
+    //TODO: identify method which needs checking
+    //TODO: replace file with new method contract
+    //TODO: identify contract which needs proving
+    //TODO: prove contract
+    //TODO: undo file replacement
+    //TODO: report about contract proving success
+
     //TODO: implement error checking
+    return false
+  }
+
+  //TODO: this method seems to be called only for .protocol-files
+  // So the method should be irrelevant, as KeY can only check .java-files
+  fun check(message: String, file: Path, pos: Int) : Boolean {
+    if (!file.extension.equals("java")) return false //KeY can only check Java Code in java files
+
+    if (!converted) { //creating files for KeY on first call
+      convert()
+      converted = true
+    }
+
+    //TODO: identify method which needs checking
+    //TODO: replace file with new method contract
+    //TODO: identify contract which needs proving
+    //TODO: prove contract
+    //TODO: undo file replacement
+    //TODO: report about contract proving success
+
+    //TODO: implement error checking
+    return false
+  }
+
+  private fun getClone(original: JCCompilationUnit): JCCompilationUnit {
+    val clone = original.clone()
+    if (clone is JCCompilationUnit) {
+      return clone
+    }
+    return original
   }
 }
