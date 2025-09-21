@@ -49,6 +49,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   val directory = TempDirectoryKey()
   private val sourceFiles = HashSet<String>()
   private val compilationUnits = HashMap<String, CompilationUnitTree>()
+  private val jcTrees = HashMap<JCTree, String>()
   private val contractLog = ContractLog()
   private var converted = false
 
@@ -77,8 +78,9 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     val sourcePath = root.sourceFile.toString()
     if (sourceFiles.contains(sourcePath)) return
     sourceFiles.add(sourcePath)
-    if (root is JCCompilationUnit) { //deep-cloning root to prevent information loss due to editing by the CFVisitor
-      val clone = getClone(root)
+    if (root is JCCompilationUnit) {
+      root.accept(TreeLogger(jcTrees, sourcePath)) //saving a reference to the source-file for all JCTrees inside the JCCompilationUnit
+      val clone = getClone(root)  //deep-cloning root to prevent information loss due to editing by the CFVisitor
       clone.accept(TreeCloner())
       compilationUnits[sourcePath] = clone
     }
@@ -111,6 +113,14 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
   fun check(source: Any, messageKey: String, vararg args: Any?) : Boolean {
     if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
+
+    println("Source is JCTree: $source")
+    val sourceFile = jcTrees[source]
+    println("Source-file of source: $sourceFile")
+    println(compilationUnits[sourceFile]?.sourceFile)
+    println("MessageKey: $messageKey")
+
+
     /*
     println("---Source---")
     println(source)
