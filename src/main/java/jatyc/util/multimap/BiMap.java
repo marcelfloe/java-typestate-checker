@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class BiMap<A,B> {
-  private Map<A, Set<Entry<A,B>>> aMap = new HashMap<>();
-  private Map<B, Set<Entry<A,B>>> bMap = new HashMap<>();
-  private Set<A> as = new HashSet<>();
-  private Set<B> bs = new HashSet<>();
+  private final Map<A, Set<Entry<A,B>>> aMap = new HashMap<>();
+  private final Map<B, Set<Entry<A,B>>> bMap = new HashMap<>();
+  private final Set<A> as = new HashSet<>();
+  private final Set<B> bs = new HashSet<>();
 
   public BiMap() {}
 

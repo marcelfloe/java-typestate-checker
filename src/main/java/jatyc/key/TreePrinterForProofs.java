@@ -9,11 +9,11 @@ import java.io.Writer;
  * but does include the protocol information of this-pointers and all typestate information based on annotations.
  */
 public class TreePrinterForProofs extends TreePrinterWithoutBodies {
-  private TreePrinterWithoutProtocol methodPrinter;
+  private final TreePrinterWithoutProtocol methodPrinter;
 
   public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
     super(out, sourceOutput, checker, contractLog);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker, contractLog);
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog);
   }
 
   @Override

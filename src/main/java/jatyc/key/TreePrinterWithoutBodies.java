@@ -11,7 +11,7 @@ import java.io.Writer;
  * but does include the protocol information of this-pointers and all typestate information based on annotations.
  */
 public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
-  private JavaTypestateChecker checker;
+  private final JavaTypestateChecker checker;
   private String ghostVar;
 
   public TreePrinterWithoutBodies(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {

@@ -12,7 +12,6 @@ import jatyc.typestate.graph.State;
 import jatyc.util.multimap.BiMap;
 import jatyc.util.multimap.QuadMap;
 import jatyc.utils.ClassUtils;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +29,13 @@ public class ContractCreator extends Pretty {
   public ContractCreator(ContractLog contractLog, JavaTypestateChecker checker) {
     super(new Writer() { //this writer isn't supposed to write anything; pretty is only used to properly visit the entire given tree
       @Override
-      public void write(@NotNull char[] cbuf, int off, int len) throws IOException {}
+      public void write(@NotNull char[] cbuf, int off, int len) {}
 
       @Override
-      public void flush() throws IOException {}
+      public void flush() {}
 
       @Override
-      public void close() throws IOException {}
+      public void close() {}
     }, true);
     this.contractLog = contractLog;
     this.checker = checker;

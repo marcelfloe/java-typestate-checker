@@ -2,7 +2,6 @@ package jatyc.key;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
-import java.io.IOException;
 import java.io.Writer;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,15 +12,15 @@ public class TreeCloner extends Pretty {
   public TreeCloner() {
     super(new Writer() {
       @Override
-      public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
+      public void write(@NotNull char[] cbuf, int off, int len) {
       }
 
       @Override
-      public void flush() throws IOException {
+      public void flush() {
       }
 
       @Override
-      public void close() throws IOException {
+      public void close() {
       }
     }, true); //Pretty is not actually supposed to print anything, but to manage calling the correct visit functions
   }

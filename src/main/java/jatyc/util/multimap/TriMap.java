@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class TriMap <A,B,C> {
-  private Map<A, Set<Entry<A,B,C>>> aMap = new HashMap<>();
-  private Map<B, Set<Entry<A,B,C>>> bMap = new HashMap<>();
-  private Map<C, Set<Entry<A,B,C>>> cMap = new HashMap<>();
-  private Set<A> as = new HashSet<>();
-  private Set<B> bs = new HashSet<>();
-  private Set<C> cs = new HashSet<>();
+  private final Map<A, Set<Entry<A,B,C>>> aMap = new HashMap<>();
+  private final Map<B, Set<Entry<A,B,C>>> bMap = new HashMap<>();
+  private final Map<C, Set<Entry<A,B,C>>> cMap = new HashMap<>();
+  private final Set<A> as = new HashSet<>();
+  private final Set<B> bs = new HashSet<>();
+  private final Set<C> cs = new HashSet<>();
 
   public TriMap() {}
 

@@ -6,11 +6,7 @@ import com.sun.tools.javac.tree.Pretty;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-//TODO: Include contracts of parent classes
-//TODO: include subtyping in contracts
 
 /**
  * This class prints a version of the given tree that does not include any method bodies,
@@ -18,7 +14,6 @@ import java.util.Map;
  */
 public class CommonPrinterFeatures extends Pretty {
   protected Type enclClassType;
-  protected Map<MethodSignature, MethodInformation> contracts = new HashMap<>();
   protected ContractLog contractLog;
 
   public CommonPrinterFeatures(Writer out, boolean sourceOutput, ContractLog contractLog) {

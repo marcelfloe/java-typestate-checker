@@ -1,7 +1,6 @@
 package jatyc.key;
 
 import com.sun.tools.javac.tree.JCTree;
-import jatyc.JavaTypestateChecker;
 import java.io.Writer;
 
 /**
@@ -11,7 +10,7 @@ import java.io.Writer;
 //TODO: also print given assertions (place assertions for entire method starting at the position with the assumed mistake, as checker doesn't check after that)
 public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
 
-  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
+  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, ContractLog contractLog) {
     super(out, sourceOutput, contractLog);
   }
 

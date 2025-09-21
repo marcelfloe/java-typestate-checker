@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class which proves all proof obligations of the source file using KeY.
- * Based on https://github.com/KeYProject/key/blob/nightly/key.core.example/src/main/java/org/key_project/Main.java
+ * Based on <a href="https://github.com/KeYProject/key/blob/nightly/key.core.example/src/main/java/org/key_project/Main.java">https://github.com/KeYProject/key/blob/nightly/key.core.example/src/main/java/org/key_project/Main.java</a>
  */
 public class KeyProver {
 
