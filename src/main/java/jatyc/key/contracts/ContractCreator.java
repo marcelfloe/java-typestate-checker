@@ -1,4 +1,4 @@
-package jatyc.key;
+package jatyc.key.contracts;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;

@@ -1,7 +1,8 @@
-package jatyc.key;
+package jatyc.key.treePrinter;
 
 import com.sun.tools.javac.tree.JCTree;
 import jatyc.JavaTypestateChecker;
+import jatyc.key.contracts.ContractLog;
 import java.io.Writer;
 
 /**

@@ -1,8 +1,12 @@
-package jatyc.key;
+package jatyc.key.treePrinter;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
+import jatyc.key.contracts.ContractCreator;
+import jatyc.key.contracts.ContractLog;
+import jatyc.key.contracts.MethodInformation;
+import jatyc.key.contracts.MethodSignature;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;

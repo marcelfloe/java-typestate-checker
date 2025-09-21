@@ -4,6 +4,11 @@ import com.sun.source.tree.*
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit
 import jatyc.JavaTypestateChecker
+import jatyc.key.contracts.ContractCreator
+import jatyc.key.contracts.ContractLog
+import jatyc.key.treePrinter.TreePrinterWithoutBodies
+import jatyc.key.treeUtils.TreeCloner
+import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
 import java.nio.file.Path
 import kotlin.io.path.extension
@@ -97,7 +102,8 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
       val content : String = if (root is JCTree) {
         val writer = StringWriter()
-        val printer = TreePrinterWithoutBodies(writer, true, checker, contractLog)
+        val printer =
+          TreePrinterWithoutBodies(writer, true, checker, contractLog)
         root.accept(printer)
         writer.toString()
       } else {""}

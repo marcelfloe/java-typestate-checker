@@ -1,4 +1,4 @@
-package jatyc.key;
+package jatyc.key.treeUtils;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;

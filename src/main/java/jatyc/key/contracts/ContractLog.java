@@ -1,4 +1,4 @@
-package jatyc.key;
+package jatyc.key.contracts;
 
 import java.util.HashMap;
 
