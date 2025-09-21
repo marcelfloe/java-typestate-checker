@@ -6,6 +6,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit
 import jatyc.JavaTypestateChecker
 import jatyc.key.contracts.ContractCreator
 import jatyc.key.contracts.ContractLog
+import jatyc.key.treePrinter.TreePrinterForProofs
 import jatyc.key.treePrinter.TreePrinterWithoutBodies
 import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
@@ -53,7 +54,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   val prover = KeyProver()
   val directory = TempDirectoryKey()
   private val sourceFiles = HashSet<String>()
-  private val compilationUnits = HashMap<String, CompilationUnitTree>()
+  private val compilationUnits = HashMap<String, JCCompilationUnit>()
   private val jcTrees = HashMap<JCTree, String>()
   private val contractLog = ContractLog()
   private var converted = false
@@ -100,13 +101,12 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
       val fileName = root.sourceFile.name.split("\\").last().split(".")
 
-      val content : String = if (root is JCTree) {
-        val writer = StringWriter()
-        val printer =
-          TreePrinterWithoutBodies(writer, true, checker, contractLog)
-        root.accept(printer)
-        writer.toString()
-      } else {""}
+      val writer = StringWriter()
+      val printer =
+        TreePrinterWithoutBodies(writer, true, checker, contractLog)
+      root.accept(printer)
+
+      val content = writer.toString()
 
       print("\ncontent:\n$content")
 
@@ -120,12 +120,36 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   fun check(source: Any, messageKey: String, vararg args: Any?) : Boolean {
     if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
 
+
+    if (!converted) { //creating files for KeY on first call
+      convert()
+      converted = true
+    }
+
     println("Source is JCTree: $source")
     val sourceFile = jcTrees[source]
     println("Source-file of source: $sourceFile")
     println(compilationUnits[sourceFile]?.sourceFile)
     println("MessageKey: $messageKey")
+    val root = compilationUnits[sourceFile] ?: return false //sourcefile wasn't logged
 
+    val writer = StringWriter()
+    val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, source, messageKey, args)
+    root.accept(printer)
+
+    println(writer.toString())
+
+    val content = writer.toString()
+
+    print("\ncontent:\n$content")
+
+    val fileName = root.sourceFile.name.split("\\").last().split(".")
+
+    val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
+
+    directory.replaceFileForProof(fileName.first(), fileName.last(), content, packageName.split("."))
+
+    directory.undoReplacements()
 
     /*
     println("---Source---")
@@ -148,11 +172,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     }
     println("++++++++++")
      */
-
-    if (!converted) { //creating files for KeY on first call
-      convert()
-      converted = true
-    }
 
     //TODO: identify method which needs checking
     //TODO: replace file with new method contract

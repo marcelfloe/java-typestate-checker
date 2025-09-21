@@ -10,9 +10,15 @@ import java.io.Writer;
  */
 //TODO: also print given assertions (place assertions for entire method starting at the position with the assumed mistake, as checker doesn't check after that)
 public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
+  private final JCTree errorSource;
+  private final String messageKeY;
+  private final Object[] args;
 
-  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, ContractLog contractLog) {
+  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, ContractLog contractLog, JCTree errorSource, String messageKey, Object... args) {
     super(out, sourceOutput, contractLog);
+    this.errorSource = errorSource;
+    this.messageKeY = messageKey;
+    this.args = args;
   }
 
   //annotations and imports are managed by super class

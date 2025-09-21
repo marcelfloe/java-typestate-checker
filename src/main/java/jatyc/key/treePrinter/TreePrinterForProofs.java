@@ -12,9 +12,16 @@ import java.io.Writer;
 public class TreePrinterForProofs extends TreePrinterWithoutBodies {
   private final TreePrinterWithoutProtocol methodPrinter;
 
-  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
+  private final JCTree errorSource;
+  private final String messageKeY;
+  private final Object[] args;
+
+  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, JCTree errorSource, String messageKey, Object... args) {
     super(out, sourceOutput, checker, contractLog);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog);
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog, errorSource, messageKey, args);
+    this.errorSource = errorSource;
+    this.messageKeY = messageKey;
+    this.args = args;
   }
 
   @Override
@@ -28,6 +35,6 @@ public class TreePrinterForProofs extends TreePrinterWithoutBodies {
 
   //TODO: identify which method needs replacement
   private boolean methodNeedsReplacement(JCTree.JCMethodDecl tree) {
-    return true;
+    return false;
   }
 }
