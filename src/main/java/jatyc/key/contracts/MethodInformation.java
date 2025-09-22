@@ -7,14 +7,8 @@ import java.util.List;
  * @param signature the method signature
  * @param annotationInformation the contract information provided by annotations
  * @param protocolInformation the contract information provided by the class protocol
- * @param parentTypes the direct parent classes which might contain the same method with contract
+ * @param parentTypes all parent classes which might contain the same method with contract
  */
-//TODO: might require all parent types and not just the direct parent types, as otherwise contracts might get lost
-// e.g.:
-// class A {foo()}
-// class B extends A {}
-// class C extends B {@Override foo()}
-// Here the connection from C to A might get lost
 public record MethodInformation(MethodSignature signature, ContractInformation annotationInformation, ContractInformation protocolInformation, List<String> parentTypes) {
 
   public String getRequiresWithoutProtocol() {

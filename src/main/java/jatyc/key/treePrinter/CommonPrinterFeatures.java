@@ -131,8 +131,22 @@ public class CommonPrinterFeatures extends Pretty {
       ensures.add(info.getEnsuresWithoutProtocol());
       assignable.add(info.getAssignableWithoutProtocol());
     }
-    for (String parent : info.parentTypes()) {
-      getContract(new MethodSignature(parent, signature.methodName(), signature.parameterTypes()), withProtocolInformation, requires, ensures, assignable);
+    for (String parent : info.parentTypes()) { //iterates over all parent types -> no recursion required
+      getContractWithoutParents(new MethodSignature(parent, signature.methodName(), signature.parameterTypes()), withProtocolInformation, requires, ensures, assignable);
+    }
+  }
+
+  private void getContractWithoutParents(MethodSignature signature, boolean withProtocolInformation, List<String> requires, List<String> ensures, List<String> assignable) {
+    MethodInformation info = contractLog.get(signature);
+    if (info == null) return;
+    if (withProtocolInformation) {
+      requires.add(info.getRequiresWithProtocol());
+      ensures.add(info.getEnsuresWithProtocol());
+      assignable.add(info.getAssignableWithProtocol());
+    } else {
+      requires.add(info.getRequiresWithoutProtocol());
+      ensures.add(info.getEnsuresWithoutProtocol());
+      assignable.add(info.getAssignableWithoutProtocol());
     }
   }
 

@@ -14,6 +14,7 @@ import jatyc.util.multimap.QuadMap;
 import jatyc.utils.ClassUtils;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -82,8 +83,19 @@ public class ContractCreator extends Pretty {
 
   private List<String> getSuperTypes(Type type) {
     if (type == null) return new ArrayList<>();
-    return checker.getUtils().typeIntroducer.getJavaType(type).getSuperTypes().stream().map(
+    JavaType javaType = checker.getUtils().typeIntroducer.getJavaType(type);
+    return getSuperTypesRecursive(javaType).stream().map(
       JavaType::qualifiedName).toList();
+  }
+
+  private Set<JavaType> getSuperTypesRecursive(JavaType type) {
+    Set<JavaType> supertypes = new HashSet<>();
+    if (type == null) return supertypes;
+    for (JavaType supertype : type.getSuperTypes()) {
+      supertypes.add(supertype);
+      supertypes.addAll(getSuperTypesRecursive(supertype));
+    }
+    return supertypes;
   }
 
   private void getAnnotationInformation(List<String> requires, List<String> ensures, List<String> assignable, JCTree.JCMethodDecl tree) {
