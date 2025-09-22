@@ -58,6 +58,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   private val jcTrees = HashMap<JCTree, String>()
   private val contractLog = ContractLog()
   private var converted = false
+  private val convertedFiles = HashSet<String>()
 
   fun test(test: CompilationUnitTree) {
 
@@ -84,6 +85,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     val sourcePath = root.sourceFile.toString()
     if (sourceFiles.contains(sourcePath)) return
     sourceFiles.add(sourcePath)
+    converted = false //new file needs conversion
     if (root is JCCompilationUnit) {
       root.accept(TreeLogger(jcTrees, sourcePath)) //saving a reference to the source-file for all JCTrees inside the JCCompilationUnit
       val clone = getClone(root)  //deep-cloning root to prevent information loss due to editing by the CFVisitor
@@ -92,12 +94,19 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     }
   }
 
-  fun convert() {
-    for (root in compilationUnits.values) { //creating all contracts for all given classes and their methods
-      if (root is JCTree) root.accept(ContractCreator(contractLog, checker))
+  private fun convert() {
+    println("CONVERTING")
+    //TODO: figure out when the checker touches files the first time and when it actually checks them as the contracts might not include parent contracts if checked at the wrong time
+    // Maybe the errors which are reported early are errors outside the java code? e.g. syntax errors
+    for (root in compilationUnits.values) { //creating contract information of all files
+      if (convertedFiles.contains(root.sourceFile.toString())) continue //file already converted
+      root.accept(ContractCreator(contractLog, checker))
+      println("NOT YET CONVERTED: ${root.sourceFile}")
     }
 
     for (root in compilationUnits.values) { //creating files for KeY
+      if (convertedFiles.contains(root.sourceFile.toString())) continue //file already converted
+      convertedFiles.add(root.sourceFile.toString())
 
       val fileName = root.sourceFile.name.split("\\").last().split(".")
 
@@ -113,35 +122,28 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
       val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
       directory.putFile(fileName.first(), fileName.last(), content, packageName.split("."))
-
     }
+    converted = true
   }
 
   fun check(source: Any, messageKey: String, vararg args: Any?) : Boolean {
     if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
 
 
-    if (!converted) { //creating files for KeY on first call
+    if (!converted) { //creating files for KeY whenever a file exists that isn't converted
       convert()
-      converted = true
     }
 
-    println("Source is JCTree: $source")
     val sourceFile = jcTrees[source]
-    println("Source-file of source: $sourceFile")
-    println(compilationUnits[sourceFile]?.sourceFile)
-    println("MessageKey: $messageKey")
     val root = compilationUnits[sourceFile] ?: return false //sourcefile wasn't logged
 
     val writer = StringWriter()
     val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, source, messageKey, args)
     root.accept(printer)
 
-    println(writer.toString())
-
     val content = writer.toString()
 
-    print("\ncontent:\n$content")
+    //print("\ncontent:\n$content")
 
     val fileName = root.sourceFile.name.split("\\").last().split(".")
 
@@ -151,17 +153,16 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     directory.undoReplacements()
 
-    /*
     println("---Source---")
     println(source)
-    println("pos(): " + source.pos())
-    println("pos: " + source.pos)
-    println("tag: " + source.tag)
-    println("type: " + source.type)
-    println("kind: " + source.kind)
-    println("javaClass: " + source.javaClass)
-    println("preferredPosition: " + source.preferredPosition)
-    println("startPosition: " + source.startPosition)
+    //println("pos(): " + source.pos())
+    //println("pos: " + source.pos)
+    //println("tag: " + source.tag)
+    //println("type: " + source.type)
+    //println("kind: " + source.kind)
+    //println("javaClass: " + source.javaClass)
+    //println("preferredPosition: " + source.preferredPosition)
+    //println("startPosition: " + source.startPosition)
     println("---MessageKey---")
     println(messageKey)
     println("---Args---")
@@ -171,7 +172,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
       }
     }
     println("++++++++++")
-     */
 
     //TODO: identify method which needs checking
     //TODO: replace file with new method contract
