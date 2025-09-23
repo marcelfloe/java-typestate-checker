@@ -44,7 +44,7 @@ public class KeyProver {
       // Ensure that Taclets are parsed
       this.env = setupEnvironment(file);
     } catch (ProblemLoaderException e) {
-      LOGGER.info("KeY: Exception at '{}'", file, e);
+      LOGGER.info("Exception at '{}'", file, e);
     }
   }
 
@@ -157,11 +157,11 @@ public class KeyProver {
       env.getUi().getProofControl().startAndWaitForAutoMode(proof);
       // Show proof result
       closed = proof.openGoals().isEmpty();
-      LOGGER.info("KeY: Contract '" + contract.getDisplayName() + "' of "
+      LOGGER.info("Contract '" + contract.getDisplayName() + "' of "
         + contract.getTarget() + " is " + (closed ? "verified" : "still open")
         + ".");
     } catch (ProofInputException e) {
-      LOGGER.error("KeY: Exception at {} of {}", contract.getDisplayName(),
+      LOGGER.error("Exception at {} of {}", contract.getDisplayName(),
         contract.getTarget());
     } finally {
       if (proof != null) {
