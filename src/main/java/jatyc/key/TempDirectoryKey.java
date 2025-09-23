@@ -32,11 +32,6 @@ public class TempDirectoryKey {
     }
   }
 
-  public void replaceFileForProof(String prefix, String suffix, String content, String... relativePathNames)
-    throws IOException {
-    replaceFileForProof(prefix, suffix, content, List.of(relativePathNames));
-  }
-
   public void replaceFileForProof(String prefix, String suffix, String content, List<String> relativePathNames)
     throws IOException {
     String relativePath = "";
@@ -50,11 +45,6 @@ public class TempDirectoryKey {
     if (Files.exists(new File(copyDirectory + relativePath).toPath())) throw new IllegalArgumentException("File already got replaced: " + sourceDirectory + relativePath);
     if (!new File(sourceDirectory + relativePath).renameTo(new File(copyDirectory + relativePath))) throw new IOException("Could not rename old file: " + sourceDirectory + relativePath);
     putFile(prefix, suffix, content, relativePathNames);
-  }
-
-  public void putFile(String prefix, String suffix, String content, String... relativePathNames)
-    throws IOException {
-    putFile(prefix, suffix, content, List.of(relativePathNames));
   }
 
   public void putFile(String prefix, String suffix, String content, List<String> relativePathNames)
