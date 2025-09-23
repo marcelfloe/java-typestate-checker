@@ -6,6 +6,7 @@ import java.io.File
 //tests for linked list and generics don't work
 val ignore = listOf("linked-list", "generics")
 val only = emptyList<String>()
+//val only = listOf("assignments")
 
 private val defaultOptsNoTypeInfo = arrayOf("-Anomsgtext", "-AtypestateTrees=disable")
 private val defaultOpts = defaultOptsNoTypeInfo.plus("-AshowTypeInfo")
