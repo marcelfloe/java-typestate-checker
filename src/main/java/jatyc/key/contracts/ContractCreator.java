@@ -281,6 +281,6 @@ public class ContractCreator extends Pretty {
   protected record NewState (String newStateId) {}
 
   public static MethodSignature createMethodSignature(JCTree.JCMethodDecl tree, String enclosingClass) {
-    return new MethodSignature(enclosingClass, tree.name + "", tree.params.map(p -> p.type + ""));
+    return new MethodSignature(enclosingClass, tree.name + "", new ArrayList<>(tree.params.map(p -> {if (p.type == null) {return "";} else {return p.type.baseType() + "";}})));
   }
 }
