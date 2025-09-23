@@ -3,18 +3,19 @@ package jatyc.key
 import com.sun.source.tree.*
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit
+import de.uka.ilkd.key.speclang.Contract
 import jatyc.JavaTypestateChecker
 import jatyc.key.contracts.ContractCreator
 import jatyc.key.contracts.ContractLog
+import jatyc.key.contracts.MethodSignature
 import jatyc.key.treePrinter.TreePrinterForProofs
 import jatyc.key.treePrinter.TreePrinterWithoutBodies
+import jatyc.key.treeUtils.SignatureFinder
 import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
 import java.nio.file.Path
 import kotlin.io.path.extension
-
-//TODO: provide method to start a proof for one method
 
 /*TODO:
     Type x = y.foo(); -> typestate missmatch in protocol of y
@@ -35,23 +36,11 @@ import kotlin.io.path.extension
     Translation of entire Project for KeY required
  */
 
-
-/*
-TODO:
- -transform code to include JML (including JML based on protocols) and save files
- -whenever the typestate checker finds a problem:
-  - transform the class which includes the problem and replace the previous transformed file (save old file in different directory; new file does not include state information in contract of problematic method)
-  - then use KeY to prove the state at the problematic position
-  - then replace the file with the old file again
- */
-
-
 /**
  * This class is used to allow for error checking using KeY.
  * When using KeY it is important that every file contains only one class.
  */
 class KeyAdapter (val checker: JavaTypestateChecker) {
-  val prover = KeyProver()
   val directory = TempDirectoryKey()
   private val sourceFiles = HashSet<String>()
   private val compilationUnits = HashMap<String, JCCompilationUnit>()
@@ -59,27 +48,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   private val contractLog = ContractLog()
   private var converted = false
   private val convertedFiles = HashSet<String>()
-
-  fun test(test: CompilationUnitTree) {
-
-    /*
-    println("starting KeY with classfile: " + test.static.name)
-    //creating temp file to give to KeY
-    //the new directory is required as KeY always tries to load the entire directory of the source file
-    val directory =  Files.createTempDirectory("jatyc-key").toFile()
-    val file = File.createTempFile("tmp",".java", directory)
-    //val fileWriter = FileWriter(file)
-    //converting source code to code KeY can use
-    file.appendText(createFileContent(test.cfRoot))
-    println("total space: " + file.totalSpace + "; free space: " + file.freeSpace)
-    //proving the code using KeY
-    val isProofSuccessful = KeyProver.proofFile(file)
-    println(isProofSuccessful)
-    //file cleanup
-    file.delete()
-    directory.delete()
-     */
-  }
 
   fun put(root: CompilationUnitTree) {
     val sourcePath = root.sourceFile.toString()
@@ -95,13 +63,11 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   }
 
   private fun convert() {
-    println("CONVERTING")
     //TODO: figure out when the checker touches files the first time and when it actually checks them as the contracts might not include parent contracts if checked at the wrong time
     // Maybe the errors which are reported early are errors outside the java code? e.g. syntax errors
     for (root in compilationUnits.values) { //creating contract information of all files
       if (convertedFiles.contains(root.sourceFile.toString())) continue //file already converted
       root.accept(ContractCreator(contractLog, checker))
-      println("NOT YET CONVERTED: ${root.sourceFile}")
     }
 
     for (root in compilationUnits.values) { //creating files for KeY
@@ -126,62 +92,58 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     converted = true
   }
 
-  fun check(source: Any, messageKey: String, vararg args: Any?) : Boolean {
+  fun check(source: Any) : Boolean {
     if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
 
+    if (!converted) convert() //creating files for KeY whenever a file exists that isn't converted
 
-    if (!converted) { //creating files for KeY whenever a file exists that isn't converted
-      convert()
-    }
+    val sourceFile = jcTrees[source] ?: return false //tree wasn't logged
+    val root = compilationUnits[sourceFile] ?: return false //sourceFile wasn't logged (should be impossible given sourceFile != null)
+    val methodSignature = methodSignatureFromError(source) ?: return false //might happen depending on the position of the error
 
-    val sourceFile = jcTrees[source]
-    val root = compilationUnits[sourceFile] ?: return false //sourcefile wasn't logged
+    println("SIGNATURE: $methodSignature")
 
+    //converting file which needs testing
     val writer = StringWriter()
-    val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, source, messageKey, args)
+    val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, methodSignature)
     root.accept(printer)
 
     val content = writer.toString()
 
     //print("\ncontent:\n$content")
 
+    //saving converted file
     val fileName = root.sourceFile.name.split("\\").last().split(".")
-
     val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
     directory.replaceFileForProof(fileName.first(), fileName.last(), content, packageName.split("."))
 
-    directory.undoReplacements()
+    //starting proof
+    //val prover = KeyProver(file)
+    val prover = KeyProver(directory.sourceDir)
 
-    println("---Source---")
-    println(source)
-    //println("pos(): " + source.pos())
-    //println("pos: " + source.pos)
-    //println("tag: " + source.tag)
-    //println("type: " + source.type)
-    //println("kind: " + source.kind)
-    //println("javaClass: " + source.javaClass)
-    //println("preferredPosition: " + source.preferredPosition)
-    //println("startPosition: " + source.startPosition)
-    println("---MessageKey---")
-    println(messageKey)
-    println("---Args---")
-    args.iterator().forEach {
-      if (it != null) {
-        println(it.javaClass)
+    val contracts = prover.getContracts()
+    var contractForProof : Contract? = null
+
+    for (contract in contracts) {
+      val contractSignature = methodSignatureFromKeyContract(contract) ?: continue
+      if (methodSignature.equals(contractSignature.first) && contractSignature.first.classType.equals(contractSignature.second)) {
+        contractForProof = contract
+        break
       }
     }
-    println("++++++++++")
 
-    //TODO: identify method which needs checking
-    //TODO: replace file with new method contract
-    //TODO: identify contract which needs proving
-    //TODO: prove contract
-    //TODO: undo file replacement
-    //TODO: report about contract proving success
+    println("Chosen contract: $contractForProof")
 
-    //TODO: implement error checking
-    return false
+    val result = prover.proveContract(contractForProof)
+
+    //cleanup
+    prover.dispose()
+    directory.undoReplacements()
+
+    println("RESULT: $result")
+
+    return result
   }
 
   //TODO: this method seems to be called only for .protocol-files
@@ -211,5 +173,35 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
       return clone
     }
     return original
+  }
+
+  private fun methodSignatureFromKeyContract(contract : Contract) : Pair<MethodSignature, String>? {
+    val name = contract.name.split("[", "::", "(", ",", ")")
+
+    //expected format: ClassName[ClassName2::MethodName(Parameter1, Parameter2, ... , ParameterN).JML...]
+
+    if (name.size < 5) {
+      return null //the given String doesn't match the expected format
+    }
+
+    //position 0: class, which contains method
+    //position 1: class, which defines method (and a contract)
+    //position 2: method name
+    //position 3 to last - 1: parameter types
+    //last position: irrelevant information about the contract
+
+    val parameterTypes = name.subList(3, name.size - 1).filter { it.isNotBlank() }
+
+    return Pair(MethodSignature(name[0], name[2], parameterTypes), name[1])
+  }
+
+  private fun methodSignatureFromError(source: JCTree) : MethodSignature?{
+    val fileName = jcTrees[source]
+
+    val signatureFinder = SignatureFinder(source)
+
+    compilationUnits[fileName]?.accept(signatureFinder)
+
+    return signatureFinder.getMethodSignatur()
   }
 }

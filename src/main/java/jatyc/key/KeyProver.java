@@ -28,55 +28,25 @@ import org.slf4j.LoggerFactory;
  */
 public class KeyProver {
 
-  private static int maxSteps_;
-  private static final Logger LOGGER = LoggerFactory.getLogger(KeyProver.class);
+  private int maxSteps_ = 10000;
+  private final Logger LOGGER = LoggerFactory.getLogger(KeyProver.class);
+  private KeYEnvironment<?> env;
 
   /**
-   * The entry point of the prover.
-   *
-   * @param file The file which is supposed to be proved.
-   * @return true if the proof was successful, false if not
+   * Creates a new KeyProver for proving contracts in the given file.
+   * @param file the file/directory containing the code which needs proving
    */
-  public static boolean proofFile(File file) {
-    System.out.println("LENGTH: " + file.length());
+  public KeyProver(File file) {
+    if (file == null) return;
     LOGGER.info("Starting KeY example application.");
     maxSteps_ = 10000;
-    KeYEnvironment<?> env = null;
     try {
       // Ensure that Taclets are parsed
-      env = setupEnvironment(file);
-      return proveEnvironmemt(env);
+      this.env = setupEnvironment(file);
     } catch (ProblemLoaderException e) {
-      LOGGER.info("Exception at '{}'", file, e);
-      System.out.println("EXEPTION IN PROBLEM LOADER: " + e.getMessage());
-      //proofing wasn't successful
-      return false;
-    } finally {
-      if (env != null) {
-        env.dispose();
-      }
-      System.out.println("DISPOSED");
+      LOGGER.info("KeY: Exception at '{}'", file, e);
     }
   }
-
-  /**
-   * The entry point of the prover.
-   *
-   * @param file The file which is supposed to be proved.
-   * @param maxSteps The maximum amount of steps the prover uses.
-   * @return true if the proof was successful, false if not
-   */
-  public static boolean proofFile(File file, int maxSteps) {
-    maxSteps_ = maxSteps;
-    try {
-      // Ensure that Taclets are parsed
-      KeYEnvironment<?> env = setupEnvironment(file);
-      return proveEnvironmemt(env);
-    } catch (ProblemLoaderException e) {
-    }
-    return false;
-  }
-
 
   /**
    * Sets up the environment with the Java file
@@ -85,19 +55,16 @@ public class KeyProver {
    * @return the {@KeYEnvironment} that provides the context for all following verification tasks.
    * @throws ProblemLoaderException if the setup fails
    */
-  private static KeYEnvironment<?> setupEnvironment(File file) throws ProblemLoaderException {
+  private KeYEnvironment<?> setupEnvironment(File file) throws ProblemLoaderException {
     List<File> classPaths = null; // Optionally: Additional specifications for API classes
     File bootClassPath = null; // Optionally: Different default specifications for Java API
     List<File> includes = null; // Optionally: Additional includes to consider
 
-    System.out.println("ProofSettings upcoming");
     if (!ProofSettings.isChoiceSettingInitialised()) {
-      System.out.println("ProofSettings choice setting not yet initialized");
       KeYEnvironment<?> env =
         KeYEnvironment.load(file, classPaths, bootClassPath, includes);
       env.dispose();
     }
-    System.out.println("ProofSettings choice setting initialized");
 
     // Set Taclet options
     ChoiceSettings choiceSettings = ProofSettings.DEFAULT_SETTINGS.getChoiceSettings();
@@ -112,32 +79,12 @@ public class KeyProver {
   }
 
   /**
-   * Proves every specification for which KeY knows how to generate a contract.
-   *
-   * @param env the {@link KeYEnvironment} to be verified
-   */
-  private static boolean proveEnvironmemt(KeYEnvironment<?> env) {
-    final List<Contract> proofContracts = getContracts(env);
-    //System.out.println("Found contracts:" + proofContracts.size());
-    try {
-      for (Contract contract : proofContracts) {
-        LOGGER.info("Found contract '" + contract.getDisplayName());
-        if (!proveContract(env, contract)) return false; //contract can't be proved
-      }
-    } finally {
-      env.dispose(); // Ensure always that all instances of KeYEnvironment are disposed
-    }
-
-    return true; //all contracts have been proven
-  }
-
-  /**
    * Collect all contracts (proof obligations) for the given environment.
    *
-   * @param env the {@link KeYEnvironment} to look for contracts
    * @return list of {@link Contract}s to be proven
    */
-  private static List<Contract> getContracts(KeYEnvironment<?> env) {
+  public List<Contract> getContracts() {
+    if (env == null) return new ArrayList<>();
     // List all specifications of all types in the source location (not classPaths and
     // bootClassPath)
     final List<Contract> proofContracts = new LinkedList<>();
@@ -158,13 +105,26 @@ public class KeyProver {
     return proofContracts;
   }
 
+  public boolean proveContract(Contract contract) {
+    if (this.env == null || contract == null) return false;
+    return proveContract(this.env, contract);
+  }
+
+  public boolean proveContract(Contract contract, int maxSteps_) {
+    int temp = this.maxSteps_;
+    this.maxSteps_ = maxSteps_;
+    boolean result = proveContract(contract);
+    this.maxSteps_ = temp;
+    return result;
+  }
+
   /**
    * tries to prove the given contract in the specified environment
    *
    * @param env the {@link KeYEnvironment} in which to prove the contract
    * @param contract the {@link Contract} to be proven
    */
-  private static boolean proveContract(KeYEnvironment<?> env, Contract contract) {
+  private boolean proveContract(KeYEnvironment<?> env, Contract contract) {
     Proof proof = null;
     boolean closed = false;
     try {
@@ -197,17 +157,12 @@ public class KeyProver {
       env.getUi().getProofControl().startAndWaitForAutoMode(proof);
       // Show proof result
       closed = proof.openGoals().isEmpty();
-      LOGGER.info("Contract '" + contract.getDisplayName() + "' of "
+      LOGGER.info("KeY: Contract '" + contract.getDisplayName() + "' of "
         + contract.getTarget() + " is " + (closed ? "verified" : "still open")
         + ".");
-      if (!closed) {
-        System.out.println(proof.openGoals());
-      }
     } catch (ProofInputException e) {
-      LOGGER.error("Exception at {} of {}", contract.getDisplayName(),
+      LOGGER.error("KeY: Exception at {} of {}", contract.getDisplayName(),
         contract.getTarget());
-      System.out.println("EXCEPTION WITH PROOF INPUT: " + e.getMessage());
-        contract.getTarget();
     } finally {
       if (proof != null) {
         proof.dispose(); // Ensure always that all instances of Proof are
@@ -215,5 +170,10 @@ public class KeyProver {
       }
     }
     return closed; //if proof is closed then the proof was successful
+  }
+
+
+  public void dispose() {
+    if (env != null) env.dispose();
   }
 }

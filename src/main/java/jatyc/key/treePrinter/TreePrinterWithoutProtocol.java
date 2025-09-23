@@ -2,6 +2,7 @@ package jatyc.key.treePrinter;
 
 import com.sun.tools.javac.tree.JCTree;
 import jatyc.key.contracts.ContractLog;
+import java.io.IOException;
 import java.io.Writer;
 
 /**
@@ -10,15 +11,9 @@ import java.io.Writer;
  */
 //TODO: also print given assertions (place assertions for entire method starting at the position with the assumed mistake, as checker doesn't check after that)
 public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
-  private final JCTree errorSource;
-  private final String messageKeY;
-  private final Object[] args;
 
-  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, ContractLog contractLog, JCTree errorSource, String messageKey, Object... args) {
+  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, ContractLog contractLog) {
     super(out, sourceOutput, contractLog);
-    this.errorSource = errorSource;
-    this.messageKeY = messageKey;
-    this.args = args;
   }
 
   //annotations and imports are managed by super class
@@ -27,5 +22,19 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   public void visitMethodDef(JCTree.JCMethodDecl tree) {
     printTypestateInformationWithoutProtocol(tree);
     super.visitMethodDef(tree);
+  }
+
+  //TODO: assertions might be required at other positions as well
+
+  @Override
+  public void visitApply(JCTree.JCMethodInvocation tree) {
+    //TODO: print actual assertions and assumptions
+    try {
+      print("/*assert true;*/");
+      super.visitApply(tree);
+      print("/*assume true;*/");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

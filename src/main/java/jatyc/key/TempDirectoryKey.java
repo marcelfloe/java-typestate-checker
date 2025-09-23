@@ -109,4 +109,8 @@ public class TempDirectoryKey {
     if (!file.renameTo(new File(targetPath))) throw new IOException("Could not rename file: " + file.getName());
     file.deleteOnExit();
   }
+
+  public File getSourceDir() {
+    return sourceDirectory.toFile();
+  }
 }

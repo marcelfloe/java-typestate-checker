@@ -2,7 +2,9 @@ package jatyc.key.treePrinter;
 
 import com.sun.tools.javac.tree.JCTree;
 import jatyc.JavaTypestateChecker;
+import jatyc.key.contracts.ContractCreator;
 import jatyc.key.contracts.ContractLog;
+import jatyc.key.contracts.MethodSignature;
 import java.io.Writer;
 
 /**
@@ -12,16 +14,12 @@ import java.io.Writer;
 public class TreePrinterForProofs extends TreePrinterWithoutBodies {
   private final TreePrinterWithoutProtocol methodPrinter;
 
-  private final JCTree errorSource;
-  private final String messageKeY;
-  private final Object[] args;
+  private final MethodSignature methodSignature;
 
-  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, JCTree errorSource, String messageKey, Object... args) {
+  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, MethodSignature methodSignature) {
     super(out, sourceOutput, checker, contractLog);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog, errorSource, messageKey, args);
-    this.errorSource = errorSource;
-    this.messageKeY = messageKey;
-    this.args = args;
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog);
+    this.methodSignature = methodSignature;
   }
 
   @Override
@@ -33,8 +31,7 @@ public class TreePrinterForProofs extends TreePrinterWithoutBodies {
     }
   }
 
-  //TODO: identify which method needs replacement
   private boolean methodNeedsReplacement(JCTree.JCMethodDecl tree) {
-    return false;
+    return ContractCreator.createMethodSignature(tree, enclClassType + "").equals(methodSignature);
   }
 }
