@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
+// TODO: add JML for missing Annotations (no requires -> all states possible; no ensures -> end (or droppable?; end is enough as var can't be used anymore, but assertions need to check for end and droppable); no state -> unknown/all states possible)
+
 /**
  * This class creates the contracts of the methods without including the parent contracts, but a reference to the parent types.
  */
@@ -103,6 +105,7 @@ public class ContractCreator extends Pretty {
     Type treeType = tree.restype.type;
     ClassUtils utils = checker.getUtils().classUtils;
     if (treeType != null && utils.hasProtocol(treeType)) {
+      boolean stateAnnotationExists = false;
       List<State> statesList = utils.getGraph(treeType).getAllConcreteStates().stream().toList();//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
       for (JCTree.JCAnnotation annotation : tree.mods.annotations) {
         String type = annotation.annotationType.toString();
@@ -111,7 +114,19 @@ public class ContractCreator extends Pretty {
           long stateId = getStateIndex(stateName.get(0), statesList);
           if (stateId == -1) continue; //state doesn't exist
           ensures.add("\\result." + tree.getReturnType() + "State == " + stateId);
+          stateAnnotationExists = true;
+          break;
         }
+      }
+      if (!stateAnnotationExists) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        for (State state : statesList) {
+          if (!sb.isEmpty()) sb.append(" || ");
+          sb.append("\\result." + tree.getReturnType() + "State == " + state.getId());
+        }
+        sb.append(")");
+        ensures.add(sb.toString());
       }
     }
 
@@ -120,18 +135,20 @@ public class ContractCreator extends Pretty {
         continue;
       }
       boolean protocolExists = utils.hasProtocol(varDecl.type);
+      boolean ensuresAnnotationExists = false;
+      boolean requiresAnnotationExists = false;
       if (protocolExists) {
         List<State> statesList = utils.getGraph(varDecl.type).getAllConcreteStates().stream().toList();
         for (JCTree.JCAnnotation annotation : varDecl.mods.annotations) {
           String type = annotation.annotationType.toString();
+          String paramName = getParamName(varDecl);
+          String paramClass = getParamClass(varDecl);
           if (type.equals("Ensures")) {
             List<String> stateName = getValueOnly(annotation.args.head);
             long stateId = getStateIndex(stateName.get(0), statesList);
             if (stateId == -1) continue; //state doesn't exist
-            String paramName = getParamName(varDecl);
-            String paramClass = getParamClass(varDecl);
             ensures.add(paramName + "." + paramClass + "State == " + stateId);
-            assignable.add(paramName + "." + paramClass + "State");
+            ensuresAnnotationExists = true;
           } else if (type.equals("Requires")) {
             List<String> stateName = getValueOnly(annotation.args.head);
             List<Long> stateIds = new ArrayList<>(stateName.size());
@@ -140,12 +157,18 @@ public class ContractCreator extends Pretty {
               if (stateId == -1) continue; //state doesn't exist
               stateIds.add(stateId);
             }
-            String paramName = getParamName(varDecl);
-            String paramClass = getParamClass(varDecl);
+            requiresAnnotationExists = true;
             requires.add(getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()));
-            assignable.add(paramName + "." + paramClass + "State");
           }
-          removeDuplicates(assignable);
+
+          if (!ensuresAnnotationExists) {
+            long stateId = getStateIndex("end", statesList);
+            if (stateId != -1) ensures.add(paramName + "." + paramClass + "State == " + stateId);
+          }
+          if (!requiresAnnotationExists) {
+            requires.add(getOr(statesList.stream().map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()));
+          }
+          assignable.add(paramName + "." + paramClass + "State");
         }
       }
     }
@@ -226,12 +249,6 @@ public class ContractCreator extends Pretty {
       sb.append(" || ").append(list.get(i));
     }
     return sb.toString();
-  }
-
-  private <T> void removeDuplicates(List<T> list) {
-    List<T> distinct = list.stream().distinct().toList();
-    list.clear();
-    list.addAll(distinct);
   }
 
   /**
