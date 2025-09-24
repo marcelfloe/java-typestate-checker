@@ -29,4 +29,16 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     super.visitMethodDef(tree);
   }
 
+  @Override
+  public void visitBlock(JCTree.JCBlock tree) {
+    super.visitBlock(tree);
+    //TODO: insert assertion at end of block checking protocol completion (end/droppable) for all local variables inside the block
+  }
+
+  @Override
+  public void visitReturn(JCTree.JCReturn tree) {
+    super.visitReturn(tree);
+    //TODO: insert assertion at return checking protocol completion (end/droppable) for all local variables inside the method
+    // this will require temporary variables in case of called methods, e.g. "return foo()"
+  }
 }
