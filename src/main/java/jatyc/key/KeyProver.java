@@ -172,6 +172,9 @@ public class KeyProver {
     return closed; //if proof is closed then the proof was successful
   }
 
+  public void log(String message) {
+    LOGGER.info(message);
+  }
 
   public void dispose() {
     if (env != null) env.dispose();

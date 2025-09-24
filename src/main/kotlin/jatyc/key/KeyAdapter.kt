@@ -99,9 +99,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     val sourceFile = jcTrees[source] ?: return false //tree wasn't logged
     val root = compilationUnits[sourceFile] ?: return false //sourceFile wasn't logged (should be impossible given sourceFile != null)
-    val methodSignature = methodSignatureFromError(source) ?: return false //might happen depending on the position of the error
-
-    println("SIGNATURE: $methodSignature")
+    val methodSignature = methodSignatureFromError(source) ?: return false //should not, but might happen depending on the position of the error
 
     //converting file which needs testing
     val writer = StringWriter()
@@ -136,6 +134,15 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     println("Chosen contract: $contractForProof")
 
     val result = prover.proveContract(contractForProof)
+
+    if (contractForProof == null) {
+      var paramTypes = ""
+      for (paramType in methodSignature.parameterTypes) {
+        if (paramTypes.isNotBlank()) paramTypes += ", "
+        paramTypes += paramType
+      }
+      prover.log("Contract not found: ${methodSignature.classType}.${methodSignature.methodName}($paramTypes)")
+    }
 
     //cleanup
     prover.dispose()
