@@ -125,7 +125,6 @@ class JavaTypestateChecker : SourceChecker() {
   }
 
   override fun reportWarning(source: Any, messageKey: String, vararg args: Any?) {
-    if (keyAdapter.check(source)) return //disregard warning as KeY was able to proof correctness
     if (shouldFixErrorMsg()) {
       report(source, Diagnostic.Kind.MANDATORY_WARNING, messageKey, *args)
     } else {

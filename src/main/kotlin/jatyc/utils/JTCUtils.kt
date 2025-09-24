@@ -47,7 +47,6 @@ class JTCUtils(val checker: JavaTypestateChecker) {
   val treeUtils: Trees get() = checker.treeUtils
   val typeUtils: Types get() = checker.typeUtils
   val elementUtils: Elements get() = checker.elementUtils
-  val keyAdapter = checker.keyAdapter
 
   lateinit var resolver: Resolver
   lateinit var classUtils: ClassUtils
@@ -127,12 +126,10 @@ class JTCUtils(val checker: JavaTypestateChecker) {
   }
 
   fun err(message: String, file: Path, pos: Int) {
-    keyAdapter.check(message, file, pos)
     report(file, pos, message, true)
   }
 
   fun warn(message: String, file: Path, pos: Int) {
-    keyAdapter.check(message, file, pos)
     report(file, pos, message, false)
   }
 

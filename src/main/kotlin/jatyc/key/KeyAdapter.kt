@@ -146,27 +146,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     return result
   }
 
-  //TODO: this method seems to be called only for .protocol-files
-  // So the method should be irrelevant, as KeY can only check .java-files
-  fun check(message: String, file: Path, pos: Int) : Boolean {
-    if (!file.extension.equals("java")) return false //KeY can only check Java Code in java files
-
-    if (!converted) { //creating files for KeY on first call
-      convert()
-      converted = true
-    }
-
-    //TODO: identify method which needs checking
-    //TODO: replace file with new method contract
-    //TODO: identify contract which needs proving
-    //TODO: prove contract
-    //TODO: undo file replacement
-    //TODO: report about contract proving success
-
-    //TODO: implement error checking
-    return false
-  }
-
   private fun getClone(original: JCCompilationUnit): JCCompilationUnit {
     val clone = original.clone()
     if (clone is JCCompilationUnit) {
