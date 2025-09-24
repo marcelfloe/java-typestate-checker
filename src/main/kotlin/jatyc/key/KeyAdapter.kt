@@ -14,8 +14,6 @@ import jatyc.key.treeUtils.SignatureFinder
 import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
-import java.nio.file.Path
-import kotlin.io.path.extension
 
 /*TODO:
     Type x = y.foo(); -> typestate missmatch in protocol of y
@@ -108,7 +106,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     val content = writer.toString()
 
-    //print("\ncontent:\n$content")
+    print("\ncontent:\n$content")
 
     //saving converted file
     val fileName = root.sourceFile.name.split("\\").last().split(".")
@@ -130,8 +128,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
         break
       }
     }
-
-    println("Chosen contract: $contractForProof")
 
     val result = prover.proveContract(contractForProof)
 
