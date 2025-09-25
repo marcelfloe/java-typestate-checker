@@ -1,5 +1,0 @@
-typestate Money {
-  Active = {
-    void close(): end
-  }
-}

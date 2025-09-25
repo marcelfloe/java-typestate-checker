@@ -1,7 +1,0 @@
-typestate BankWithProtocol {
-  Start = {
-    void deposit(Money): Start,
-    Money withdraw(): Start,
-    drop: end
-  }
-}

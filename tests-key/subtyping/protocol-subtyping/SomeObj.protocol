@@ -1,9 +1,0 @@
-typestate SomeObj {
-  Init = {
-    Object a(Object): end,
-    String b(Object): end,
-    Object c(String): end,
-    String d(String): end,
-    Object e(AandB): end
-  }
-}

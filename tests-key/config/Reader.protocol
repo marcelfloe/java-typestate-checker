@@ -1,6 +1,0 @@
-typestate Reader {
-  Read = {
-    int read(): Read,
-    void close(): end
-  }
-}

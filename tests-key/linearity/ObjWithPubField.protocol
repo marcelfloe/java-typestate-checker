@@ -1,5 +1,0 @@
-typestate ObjWithPubField {
-  Start = {
-    void finish(): end
-  }
-}

@@ -1,8 +1,0 @@
-typestate BaseIterator {
-  Start = {
-    boolean hasNext(): <true: Next, false: Start>
-  }
-  Next = {
-    void next(): Start
-  }
-}
