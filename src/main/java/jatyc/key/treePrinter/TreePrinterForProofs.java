@@ -18,7 +18,7 @@ public class TreePrinterForProofs extends TreePrinterWithoutBodies {
 
   public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, MethodSignature methodSignature) {
     super(out, sourceOutput, checker, contractLog);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, contractLog);
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker, contractLog);
     this.methodSignature = methodSignature;
   }
 

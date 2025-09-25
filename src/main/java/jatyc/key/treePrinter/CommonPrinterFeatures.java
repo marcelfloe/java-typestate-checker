@@ -3,6 +3,7 @@ package jatyc.key.treePrinter;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
+import jatyc.JavaTypestateChecker;
 import jatyc.key.contracts.ContractCreator;
 import jatyc.key.contracts.ContractLog;
 import jatyc.key.contracts.MethodInformation;
@@ -18,11 +19,13 @@ import java.util.List;
  */
 public class CommonPrinterFeatures extends Pretty {
   protected Type enclClassType;
-  protected ContractLog contractLog;
+  protected final ContractLog contractLog;
+  protected final JavaTypestateChecker checker;
 
-  public CommonPrinterFeatures(Writer out, boolean sourceOutput, ContractLog contractLog) {
+  public CommonPrinterFeatures(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
     super(out, sourceOutput);
     this.contractLog = contractLog;
+    this.checker = checker;
   }
 
   //@State does not exist, @Ensures is used instead
@@ -120,7 +123,7 @@ public class CommonPrinterFeatures extends Pretty {
   }
 
   private void getContract(MethodSignature signature, boolean withProtocolInformation, List<String> requires, List<String> ensures, List<String> assignable) {
-    MethodInformation info = contractLog.get(signature);
+    MethodInformation info = contractLog.get(signature); //TODO: child might have parents with contract while not having a contract themselves
     if (info == null) return;
     if (withProtocolInformation) {
       requires.add(info.getRequiresWithProtocol());
