@@ -95,6 +95,15 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     if (!converted) convert() //creating files for KeY whenever a file exists that isn't converted
 
+    val result = performCheck(source)
+    System.gc()
+
+    println("RESULT: $result")
+
+    return result
+  }
+
+  private fun performCheck(source: JCTree) : Boolean {
     val sourceFile = jcTrees[source] ?: return false //tree wasn't logged
     val root = compilationUnits[sourceFile] ?: return false //sourceFile wasn't logged (should be impossible given sourceFile != null)
     val methodSignature = methodSignatureFromError(source) ?: return false //should not, but might happen depending on the position of the error
@@ -143,8 +152,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     //cleanup
     prover.dispose()
     directory.undoReplacements()
-
-    println("RESULT: $result")
 
     return result
   }
