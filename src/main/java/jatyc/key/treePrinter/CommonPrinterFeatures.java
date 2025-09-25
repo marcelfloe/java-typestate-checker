@@ -104,7 +104,7 @@ public class CommonPrinterFeatures extends Pretty {
     }
     for (String s : assignable) {
       if (s.isBlank()) continue;
-      if (!assignableBuilder.isEmpty()) assignableBuilder.append(" ,");
+      if (!assignableBuilder.isEmpty()) assignableBuilder.append(", ");
       assignableBuilder.append(s);
     }
 
