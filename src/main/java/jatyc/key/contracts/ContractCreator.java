@@ -120,13 +120,11 @@ public class ContractCreator extends Pretty {
       }
       if (!stateAnnotationExists) {
         StringBuilder sb = new StringBuilder();
-        sb.append("(");
         for (State state : statesList) {
           if (!sb.isEmpty()) sb.append(" || ");
           sb.append("\\result." + tree.getReturnType() + "State == " + state.getId());
         }
-        sb.append(")");
-        ensures.add(sb.toString());
+        ensures.add("(" + sb + ")");
       }
     }
 
