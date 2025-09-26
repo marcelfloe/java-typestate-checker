@@ -15,25 +15,6 @@ import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
 
-/*TODO:
-    Type x = y.foo(); -> typestate missmatch in protocol of y
-    -
-    y.foo(); -> typestate missmatch in protocol of y
-    =>
-    Type temp;
-    temp = y.foo();
-    Type x = temp;
-    -
-    Type temp;
-    temp = y.foo();
-    -
-    use temp variables for KeY proofs
-    -
-    Alternative: track state within y
-    -
-    Translation of entire Project for KeY required
- */
-
 /**
  * This class is used to allow for error checking using KeY.
  * When using KeY it is important that every file contains only one class.

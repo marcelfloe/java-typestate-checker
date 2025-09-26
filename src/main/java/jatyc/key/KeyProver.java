@@ -73,9 +73,7 @@ public class KeyProver {
     newSettings.putAll(MiscTools.getDefaultTacletOptions());
     choiceSettings.setDefaultChoices(newSettings);
     // Load source code
-    KeYEnvironment<?> env =
-      KeYEnvironment.load(file, classPaths, bootClassPath, includes);
-    return env;
+    return KeYEnvironment.load(file, classPaths, bootClassPath, includes);
   }
 
   /**
