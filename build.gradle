@@ -96,14 +96,15 @@ dependencies {
   errorproneJavac "com.google.errorprone:javac:${versions.errorproneJavacVersion}"
 
   // https://mvnrepository.com/artifact/org.key-project/key.ui
-  implementation("org.key-project:key.ui:2.12.3")
+  compile implementation("org.key-project:key.ui:2.12.3")
   // https://mvnrepository.com/artifact/org.key-project/key.core
-  implementation("org.key-project:key.core:2.12.3")
+  compile implementation("org.key-project:key.core:2.12.3")
 
   implementation 'ch.qos.logback:logback-classic:1.5.18'
 }
 
 jar {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   from {
     configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
   }
