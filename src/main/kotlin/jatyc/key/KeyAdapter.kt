@@ -62,8 +62,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
       val content = writer.toString()
 
-      print("\ncontent:\n$content")
-
       val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
       directory.putFile(fileName.first(), fileName.last(), content, packageName.split("."))
@@ -79,8 +77,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     val result = performCheck(source)
     System.gc()
 
-    println("RESULT: $result")
-
     return result
   }
 
@@ -95,8 +91,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     root.accept(printer)
 
     val content = writer.toString()
-
-    print("\ncontent:\n$content")
 
     //saving converted file
     val fileName = root.sourceFile.name.split("\\").last().split(".")
@@ -128,6 +122,12 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
         paramTypes += paramType
       }
       prover.log("Contract not found: ${methodSignature.classType}.${methodSignature.methodName}($paramTypes)")
+    } else if (result) {
+      if (result) {
+        prover.log("Contract proven, no error!")
+      } else {
+        prover.log("Contract could not be proven!")
+      }
     }
 
     //cleanup

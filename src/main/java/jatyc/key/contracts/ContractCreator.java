@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: add JML for missing Annotations (no requires -> all states possible; no ensures -> end (or droppable?; end is enough as var can't be used anymore, but assertions need to check for end and droppable); no state -> unknown/all states possible)
-
 /**
  * This class creates the contracts of the methods without including the parent contracts, but a reference to the parent types.
  */
