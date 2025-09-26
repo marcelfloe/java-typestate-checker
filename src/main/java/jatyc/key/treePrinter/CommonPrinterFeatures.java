@@ -59,6 +59,9 @@ public class CommonPrinterFeatures extends Pretty {
     if (tree.toString().matches(".+jatyc\\.lib.+\\r\\n")) { //removes any imports for typestate checker annotations
       return;
     }
+    if (tree.toString().matches(".+mungo\\.lib.+\\r\\n")) { //removes any imports for typestate checker annotations (based on mungo)
+      return;
+    }
     super.visitImport(tree);
   }
 
