@@ -81,7 +81,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
 
   @Override
   public void visitReturn(JCTree.JCReturn tree) {
-    if (tree.expr == null) { //empty return -> return;
+    if (tree.expr == null || tree.expr instanceof JCTree.JCLiteral) { //empty return/returning null -> return;/return null;
       //all local variables need to be checked for protocol completion
       try {
         printAssertion(getAllLocalVars());
