@@ -13,6 +13,8 @@ import java.io.Writer;
  */
 public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
   private String ghostVar;
+  private boolean printGhostVar = false;
+  private boolean insideMethod = false;
 
   public TreePrinterWithoutBodies(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
     super(out, sourceOutput, checker,  contractLog);
@@ -22,30 +24,55 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
 
   @Override
   public void visitClassDef(JCTree.JCClassDecl tree) { //initializing the ghost variable if a protocol exists
+    boolean temp = insideMethod;
+    insideMethod = false;
+
     Type prevClassType = enclClassType;
     enclClassType = tree.type;
+
     String prevGhostVar = ghostVar;
     ghostVar = tree.getSimpleName().toString() + "State";
-    if (tree.type != null && checker.getUtils().classUtils.hasProtocol(tree.type)) {
-      try {
-        print("//@ public ghost int " + ghostVar + " = -1;\n");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
+
+    boolean ghostVarTemp = printGhostVar;
+    printGhostVar = tree.type != null && checker.getUtils().classUtils.hasProtocol(tree.type);
+
     super.visitClassDef(tree);
-    enclClassType = prevClassType;
+
     ghostVar = prevGhostVar;
+    enclClassType = prevClassType;
+    printGhostVar = ghostVarTemp;
+    insideMethod = temp;
+  }
+
+  @Override
+  public void printBlock(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException {
+    if (insideMethod || !printGhostVar) {
+      super.printBlock(stats);
+      return;
+    }
+    printBlockWithGhostVar(stats);
+
+  }
+
+  public void printBlockWithGhostVar(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException { //copy from Pretty, but with inserted assertion
+    print("{");
+    println();
+    print("//@ public ghost int " + ghostVar + " = -1;\n");
+    printStats(stats);
+    print("}");
   }
 
   @Override
   public void visitMethodDef(JCTree.JCMethodDecl tree) {
+    boolean temp = insideMethod;
+    insideMethod = true;
     printTypestateInformationWithProtocol(tree); //prints typestate information based on protocol of "this"-class
 
     JCTree.JCMethodDecl treeClone = (JCTree.JCMethodDecl) tree.clone();
     treeClone.body = null; //KeY uses method stubs without body
 
     super.visitMethodDef(treeClone);
+    insideMethod = temp;
   }
 
 }
