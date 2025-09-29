@@ -28,6 +28,7 @@ class Graph constructor(val resolvedFile: Path, val typestateName: String) {
   }
   fun getInitialState() = initialState!!
   fun getUnknownState() = unknownState
+  fun getEndState() = endState
   fun getAllConcreteStates(): Set<State> = concreteStates
   fun getAllTransitions(): Sequence<MethodTransition> = sequence {
     for (state in concreteStates) {
