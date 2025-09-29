@@ -185,6 +185,7 @@ public class ContractCreator extends Pretty {
     if (methodName.toString().equals("<init>")) {
       //TODO: This might not apply to different constructors
       // Are other constructors properly managed by the normal method handling?
+      //TODO: superstates might also need setting
       ensures.add(stateName + " == " + graph.getInitialState().getId());
     } else {
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>
