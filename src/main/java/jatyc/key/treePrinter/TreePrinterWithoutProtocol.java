@@ -5,6 +5,7 @@ import com.sun.tools.javac.tree.JCTree;
 import jatyc.JavaTypestateChecker;
 import jatyc.core.JavaType;
 import jatyc.key.contracts.ContractLog;
+import jatyc.key.treeUtils.SubtypesLog;
 import jatyc.typestate.graph.State;
 
 import java.io.IOException;
@@ -20,8 +21,8 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   private final Stack<Set<LocalVar>> localVars = new Stack<>();
   private boolean insideMethod = false;
 
-  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
-    super(out, sourceOutput, checker, contractLog);
+  public TreePrinterWithoutProtocol(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, SubtypesLog subtypes) {
+    super(out, sourceOutput, checker, contractLog, subtypes);
   }
 
   //annotations and imports are managed by super class

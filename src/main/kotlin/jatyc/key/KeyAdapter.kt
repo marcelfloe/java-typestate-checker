@@ -11,6 +11,8 @@ import jatyc.key.contracts.MethodSignature
 import jatyc.key.treePrinter.TreePrinterForProofs
 import jatyc.key.treePrinter.TreePrinterWithoutBodies
 import jatyc.key.treeUtils.SignatureFinder
+import jatyc.key.treeUtils.SubtypesLog
+import jatyc.key.treeUtils.SubtypesLogger
 import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
@@ -27,6 +29,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   private val contractLog = ContractLog()
   private var converted = false
   private val convertedFiles = HashSet<String>()
+  private val subtypesLog = SubtypesLog()
 
   fun put(root: CompilationUnitTree) {
     val sourcePath = root.sourceFile.toString()
@@ -47,6 +50,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     for (root in compilationUnits.values) { //creating contract information of all files
       if (convertedFiles.contains(root.sourceFile.toString())) continue //file already converted
       root.accept(ContractCreator(contractLog, checker))
+      root.accept(SubtypesLogger(subtypesLog, checker))
     }
 
     for (root in compilationUnits.values) { //creating files for KeY
@@ -57,10 +61,12 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
       val writer = StringWriter()
       val printer =
-        TreePrinterWithoutBodies(writer, true, checker, contractLog)
+        TreePrinterWithoutBodies(writer, true, checker, contractLog, subtypesLog)
       root.accept(printer)
 
       val content = writer.toString()
+
+      println("CONTENT: $content")
 
       val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
@@ -87,10 +93,12 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     //converting file which needs testing
     val writer = StringWriter()
-    val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, methodSignature)
+    val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, subtypesLog, methodSignature)
     root.accept(printer)
 
     val content = writer.toString()
+
+    println("CONTENT: $content")
 
     //saving converted file
     val fileName = root.sourceFile.name.split("\\").last().split(".")

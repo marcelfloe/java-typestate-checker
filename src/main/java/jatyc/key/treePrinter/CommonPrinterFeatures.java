@@ -8,6 +8,8 @@ import jatyc.key.contracts.ContractCreator;
 import jatyc.key.contracts.ContractLog;
 import jatyc.key.contracts.MethodInformation;
 import jatyc.key.contracts.MethodSignature;
+import jatyc.key.treeUtils.SubtypesLog;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -21,11 +23,13 @@ public class CommonPrinterFeatures extends Pretty {
   protected Type enclClassType;
   protected final ContractLog contractLog;
   protected final JavaTypestateChecker checker;
+  protected final SubtypesLog subtypes;
 
-  public CommonPrinterFeatures(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
+  public CommonPrinterFeatures(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, SubtypesLog subtypes) {
     super(out, sourceOutput);
     this.contractLog = contractLog;
     this.checker = checker;
+    this.subtypes = subtypes;
   }
 
   //@State does not exist, @Ensures is used instead
@@ -90,6 +94,7 @@ public class CommonPrinterFeatures extends Pretty {
     List<String> assignable = new ArrayList<>();
 
     getContract(signature, withProtocolInformation, requires, ensures, assignable);
+    assignable = assignable.stream().distinct().toList();
 
     StringBuilder requiresBuilder = new StringBuilder();
     StringBuilder ensuresBuilder = new StringBuilder();
@@ -122,7 +127,7 @@ public class CommonPrinterFeatures extends Pretty {
       contract += "\n//@ assignable " + assignableBuilder + ";";
     }
 
-    return contract;
+    return "\n//@ public normal_behavior \n//@ requires true;" + contract;
   }
 
   private void getContract(MethodSignature signature, boolean withProtocolInformation, List<String> requires, List<String> ensures, List<String> assignable) {
@@ -132,10 +137,17 @@ public class CommonPrinterFeatures extends Pretty {
       requires.add(info.getRequiresWithProtocol());
       ensures.add(info.getEnsuresWithProtocol());
       assignable.add(info.getAssignableWithProtocol());
+      assignable.addAll(subtypes.get(info.signature().classType()).stream().map(t -> t + "State").toList());
     } else {
       requires.add(info.getRequiresWithoutProtocol());
       ensures.add(info.getEnsuresWithoutProtocol());
       assignable.add(info.getAssignableWithoutProtocol());
+    }
+    for (int i = 0; i < info.parameterNames().size(); i++) {
+      String paramName = info.parameterNames().get(i);
+      for (String type : subtypes.get(info.signature().parameterTypes().get(i))) {
+        assignable.add(paramName + "." + type + "State");
+      }
     }
     for (String parent : info.parentTypes()) { //iterates over all parent types -> no recursion required
       getContractWithoutParents(new MethodSignature(parent, signature.methodName(), signature.parameterTypes()), withProtocolInformation, requires, ensures, assignable);

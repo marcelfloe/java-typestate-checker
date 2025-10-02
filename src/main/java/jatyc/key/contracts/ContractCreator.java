@@ -74,9 +74,10 @@ public class ContractCreator extends Pretty {
     ContractInformation protocolInformation = new ContractInformation(requiresProtocol, ensuresProtocol, assignableProtocol);
 
     List<String> superTypes = getSuperTypes(enclClassType);
+    List<String> parameterNames = tree.params.map(p -> p.name.toString());
 
     MethodSignature signature = createMethodSignature(tree, classType);
-    MethodInformation methodInformation = new MethodInformation(signature, annotationInformation, protocolInformation, superTypes);
+    MethodInformation methodInformation = new MethodInformation(signature, parameterNames, annotationInformation, protocolInformation, superTypes);
 
     contractLog.log(methodInformation);
   }
@@ -186,7 +187,7 @@ public class ContractCreator extends Pretty {
       //TODO: This might not apply to different constructors
       // Are other constructors properly managed by the normal method handling?
       //TODO: superstates might also need setting
-      ensures.add(stateName + " == " + graph.getInitialState().getId());
+      ensures.add("(" + stateName + " == " + graph.getInitialState().getId() + ")");
     } else {
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>
         set = quadMap.getBMapping(createMethodSignature(tree, enclClassType + ""));
@@ -195,12 +196,12 @@ public class ContractCreator extends Pretty {
       for (QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState> e : set) {
         originalStates.add(e.w().originalStateId);
         if (e.y() == null) {
-          ensures.add("\\old(" + stateName + ") == " + e.w().originalStateId + " ==> " + stateName + " == " + e.z().newStateId);
+          ensures.add("(\\old(" + stateName + ") == " + e.w().originalStateId + " ==> " + stateName + " == " + e.z().newStateId + ")");
         } else {
-          ensures.add("(\\old(" + stateName + ") == " + e.w().originalStateId + " && \\result == " + e.y().returnedValue +") ==> " + stateName + " == " + e.z().newStateId);
+          ensures.add("((\\old(" + stateName + ") == " + e.w().originalStateId + " && \\result == " + e.y().returnedValue +") ==> " + stateName + " == " + e.z().newStateId + ")");
         }
       }
-      requires.add(getOr(originalStates.stream().distinct().map(s -> stateName + " == " + s).toList()));
+      requires.add(getOr(originalStates.stream().distinct().map(s -> "(" + stateName + " == " + s + ")").toList()));
     }
     assignable.add(stateName);
   }

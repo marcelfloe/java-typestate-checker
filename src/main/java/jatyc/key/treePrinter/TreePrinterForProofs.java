@@ -5,6 +5,8 @@ import jatyc.JavaTypestateChecker;
 import jatyc.key.contracts.ContractCreator;
 import jatyc.key.contracts.ContractLog;
 import jatyc.key.contracts.MethodSignature;
+import jatyc.key.treeUtils.SubtypesLog;
+
 import java.io.Writer;
 
 /**
@@ -16,9 +18,9 @@ public class TreePrinterForProofs extends TreePrinterWithoutBodies {
 
   private final MethodSignature methodSignature;
 
-  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, MethodSignature methodSignature) {
-    super(out, sourceOutput, checker, contractLog);
-    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker, contractLog);
+  public TreePrinterForProofs(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, SubtypesLog subtypes, MethodSignature methodSignature) {
+    super(out, sourceOutput, checker, contractLog, subtypes);
+    this.methodPrinter = new TreePrinterWithoutProtocol(out, sourceOutput, checker, contractLog, subtypes);
     this.methodSignature = methodSignature;
   }
 

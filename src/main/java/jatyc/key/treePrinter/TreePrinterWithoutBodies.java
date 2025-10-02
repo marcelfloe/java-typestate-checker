@@ -3,21 +3,24 @@ package jatyc.key.treePrinter;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import jatyc.JavaTypestateChecker;
+import jatyc.core.JavaType;
 import jatyc.key.contracts.ContractLog;
+import jatyc.key.treeUtils.SubtypesLog;
+
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Set;
 
 /**
  * This class prints a version of the given tree that does not include any method bodies,
  * but does include the protocol information of this-pointers and all typestate information based on annotations.
  */
 public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
-  private String ghostVar;
   private boolean printGhostVar = false;
   private boolean insideMethod = false;
 
-  public TreePrinterWithoutBodies(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog) {
-    super(out, sourceOutput, checker,  contractLog);
+  public TreePrinterWithoutBodies(Writer out, boolean sourceOutput, JavaTypestateChecker checker, ContractLog contractLog, SubtypesLog subtypes) {
+    super(out, sourceOutput, checker, contractLog, subtypes);
   }
 
   //annotations and imports are managed by super class
@@ -30,15 +33,11 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
     Type prevClassType = enclClassType;
     enclClassType = tree.type;
 
-    String prevGhostVar = ghostVar;
-    ghostVar = tree.getSimpleName().toString() + "State";
-
     boolean ghostVarTemp = printGhostVar;
-    printGhostVar = tree.type != null && checker.getUtils().classUtils.hasProtocol(tree.type);
+    printGhostVar = tree.type != null && checker.getUtils().classUtils.hasProtocol(tree.type) && checker.getUtils().typeIntroducer.getJavaType(tree.type).getSuperTypes().stream().filter(JavaType::hasProtocol).toList().isEmpty();
 
     super.visitClassDef(tree);
 
-    ghostVar = prevGhostVar;
     enclClassType = prevClassType;
     printGhostVar = ghostVarTemp;
     insideMethod = temp;
@@ -57,7 +56,9 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
   public void printBlockWithGhostVar(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException { //copy from Pretty, but with inserted assertion
     print("{");
     println();
-    print("//@ public ghost int " + ghostVar + " = -1;\n");
+    for (String type : subtypes.get(enclClassType.baseType().toString())) {
+      print("//@ public ghost int " + type + "State = -1;\n");
+    }
     printStats(stats);
     print("}");
   }

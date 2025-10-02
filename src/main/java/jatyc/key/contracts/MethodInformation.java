@@ -9,7 +9,7 @@ import java.util.List;
  * @param protocolInformation the contract information provided by the class protocol
  * @param parentTypes all parent classes which might contain the same method with contract
  */
-public record MethodInformation(MethodSignature signature, ContractInformation annotationInformation, ContractInformation protocolInformation, List<String> parentTypes) {
+public record MethodInformation(MethodSignature signature, List<String> parameterNames, ContractInformation annotationInformation, ContractInformation protocolInformation, List<String> parentTypes) {
 
   public String getRequiresWithoutProtocol() {
     return annotationInformation().getRequires();
