@@ -13,10 +13,8 @@ import jatyc.util.multimap.BiMap;
 import jatyc.util.multimap.QuadMap;
 import jatyc.utils.ClassUtils;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -186,8 +184,22 @@ public class ContractCreator extends Pretty {
     if (methodName.toString().equals("<init>")) {
       //TODO: This might not apply to different constructors
       // Are other constructors properly managed by the normal method handling?
-      //TODO: superstates might also need setting
       ensures.add("(" + stateName + " == " + graph.getInitialState().getId() + ")");
+      Set<JavaType> supertypes = checker.getUtils().typeIntroducer.getJavaType(enclClassType).getSuperTypes();
+      Queue<JavaType> queue = new LinkedList<>(supertypes);
+      while (!queue.isEmpty()) {
+        JavaType type = queue.poll();
+        for (JavaType supertype : type.getSuperTypes()) {
+          if (!supertypes.contains(supertype)) {
+            supertypes.add(supertype);
+            queue.add(supertype);
+          }
+        }
+        if (type.hasProtocol()) {
+          ensures.add("(" + type.qualifiedName() + "State == " + type.getGraph().getInitialState().getId() + ")");
+        }
+      }
+
     } else {
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>
         set = quadMap.getBMapping(createMethodSignature(tree, enclClassType + ""));
