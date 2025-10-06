@@ -30,6 +30,7 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   private var converted = false
   private val convertedFiles = HashSet<String>()
   private val subtypesLog = SubtypesLog()
+  private val checkedMethods = HashMap<MethodSignature, Boolean>()
 
   fun put(root: CompilationUnitTree) {
     val sourcePath = root.sourceFile.toString()
@@ -91,6 +92,8 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     val root = compilationUnits[sourceFile] ?: return false //sourceFile wasn't logged (should be impossible given sourceFile != null)
     val methodSignature = methodSignatureFromError(source) ?: return false //should not, but might happen depending on the position of the error
 
+    if (checkedMethods.contains(methodSignature)) return checkedMethods[methodSignature]!!
+
     //converting file which needs testing
     val writer = StringWriter()
     val printer = TreePrinterForProofs(writer, true, this.checker, this.contractLog, subtypesLog, methodSignature)
@@ -137,6 +140,8 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
         prover.log("Contract could not be proven!")
       }
     }
+
+    checkedMethods[methodSignature] = result
 
     //cleanup
     prover.dispose()
