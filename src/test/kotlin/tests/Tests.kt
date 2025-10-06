@@ -24,10 +24,11 @@ private const val dir15 = "cfg"
 val ignore = listOf("linked-list", "generics")
 //val only = emptyList<String>()
 //val only = listOf("assignments")
-//val only = listOf(dir0, dir1, dir2, dir3)
-//val only = listOf(dir4, dir5, dir6, dir7)
-//val only = listOf(dir8, dir9, dir10, dir11)
-val only = listOf(dir12, dir13, dir14, dir15)
+//val only = listOf(dir4)
+val only = listOf(dir0, dir1, dir2, dir3)
+//val only = listOf(dir4, dir5, dir6, dir7) //TODO: find problem with linearity/shared-test
+//val only = listOf(dir8, dir9, dir10, dir11) //TODO: find problem with subtyping/interfaces-test
+//val only = listOf(dir12, dir13, dir14, dir15) //TODO: find problem with typestatetrees/subtyping/interfaces-test
 
 
 private val defaultOptsNoTypeInfo = arrayOf("-Anomsgtext", "-AtypestateTrees=disable")
