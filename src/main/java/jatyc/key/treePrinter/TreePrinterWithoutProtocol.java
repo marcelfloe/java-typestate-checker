@@ -124,6 +124,32 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     }
   }
 
+  @Override
+  public void visitAssign(JCTree.JCAssign tree) {
+    JCTree.JCExpression lhs = tree.lhs;
+    JavaType type = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
+    if (type.hasProtocol()) {
+      Set<State> states = type.getGraph().getAllConcreteStates();
+      states.add(type.getGraph().getEndState());
+      List<Long> droppableStateIDs = getDroppableStateIDs(states);
+
+      String paramName = tree.lhs.toString();
+
+      StringBuilder assertion = new  StringBuilder();
+      assertion.append(paramName).append(" == null");
+      for (long id : droppableStateIDs) {
+        assertion.append(" || ").append(paramName).append(".").append(type).append("State == ").append(id);
+      }
+
+      try {
+        print("/*@ assert " + assertion + ";*/\n");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    super.visitAssign(tree);
+  }
+
   private void printAssertion(Collection<LocalVar> localVars) throws IOException {
     String assertion = getAssertion(localVars);
     if (!assertion.isBlank()) print("/*@ assert " + assertion +";*/\n");
@@ -139,12 +165,11 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
 
       for(JavaType type : types) {
         if (type.hasProtocol()) {
-          StringBuilder endStates = new StringBuilder();
+          StringBuilder endStates = new StringBuilder().append(localVar.name).append(" == null");
           List<Long> droppableStates = getDroppableStateIDs(type.getGraph().getAllConcreteStates());
           droppableStates.add(type.getGraph().getEndState().getId());
-          for (long droppableState : droppableStates) {
-            if (!endStates.isEmpty()) endStates.append(" || ");
-            endStates.append(localVar.name).append(".").append(type).append("State == ").append(droppableState);
+          for (long droppableState : droppableStates.stream().distinct().toList()) {
+            endStates.append(" || ").append(localVar.name).append(".").append(type).append("State == ").append(droppableState);
           }
           if (!assertion.isEmpty()) assertion.append(" && ");
           assertion.append("(").append(endStates).append(")");
