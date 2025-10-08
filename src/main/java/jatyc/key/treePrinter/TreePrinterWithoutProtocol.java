@@ -141,6 +141,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
         if (type.hasProtocol()) {
           StringBuilder endStates = new StringBuilder();
           List<Long> droppableStates = getDroppableStateIDs(type.getGraph().getAllConcreteStates());
+          droppableStates.add(type.getGraph().getEndState().getId());
           for (long droppableState : droppableStates) {
             if (!endStates.isEmpty()) endStates.append(" || ");
             endStates.append(localVar.name).append(".").append(type).append("State == ").append(droppableState);
