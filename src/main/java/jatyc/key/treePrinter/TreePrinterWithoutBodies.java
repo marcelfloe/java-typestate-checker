@@ -9,7 +9,6 @@ import jatyc.key.treeUtils.SubtypesLog;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Set;
 
 /**
  * This class prints a version of the given tree that does not include any method bodies,
@@ -57,7 +56,7 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
     print("{");
     println();
     for (String type : subtypes.get(enclClassType.baseType().toString())) {
-      print("//@ public ghost int " + type + "State = -1;\n");
+      print("//@ public ghost instance int " + type + "State = -1;\n");
     }
     printStats(stats);
     print("}");
