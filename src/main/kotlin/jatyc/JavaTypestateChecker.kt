@@ -116,7 +116,7 @@ class JavaTypestateChecker : SourceChecker() {
   }
 
   override fun reportError(source: Any, messageKey: String, vararg args: Any?) {
-    if (keyAdapter.check(source)) return //disregard error as KeY was able to proof correctness
+    if (keyAdapter.check(source)) return //disregard error as KeY was able to prove correctness
     if (shouldFixErrorMsg()) {
       report(source, Diagnostic.Kind.ERROR, messageKey, *args)
     } else {
