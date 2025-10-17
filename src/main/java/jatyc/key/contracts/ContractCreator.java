@@ -103,14 +103,18 @@ public class ContractCreator extends Pretty {
     ClassUtils utils = checker.getUtils().classUtils;
     if (treeType != null && utils.hasProtocol(treeType)) {
       boolean stateAnnotationExists = false;
-      List<State> statesList = new ArrayList(utils.getGraph(treeType).getAllConcreteStates().stream().toList());//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
+      List<State> statesList = new ArrayList<>(utils.getGraph(treeType).getAllConcreteStates().stream().toList());//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
       for (JCTree.JCAnnotation annotation : tree.mods.annotations) {
         String type = annotation.annotationType.toString();
         if (type.equals("Ensures")) { //the @Ensures annotation is used for return types as well, instead of @State
           List<String> stateName = getValueOnly(annotation.args.head);
-          long stateId = getStateIndex(stateName.get(0), statesList);
-          if (stateId == -1) continue; //state doesn't exist
-          ensures.add("\\result." + tree.getReturnType() + "State == " + stateId);
+          List<Long> stateIds = new ArrayList<>(stateName.size());
+          for (String s : stateName) {
+            long stateId = getStateIndex(s, statesList);
+            if (stateId == -1) continue; //state doesn't exist
+            stateIds.add(stateId);
+          }
+          ensures.add("(" + getOr(stateIds.stream().map(stateId -> "\\result." + tree.getReturnType() + "State == " + stateId).toList()) + ")");
           stateAnnotationExists = true;
           break;
         }
@@ -144,9 +148,13 @@ public class ContractCreator extends Pretty {
 
           if (type.equals("Ensures")) {
             List<String> stateName = getValueOnly(annotation.args.head);
-            long stateId = getStateIndex(stateName.get(0), statesList);
-            if (stateId == -1) continue; //state doesn't exist
-            ensures.add(paramName + "." + paramClass + "State == " + stateId);
+            List<Long> stateIds = new ArrayList<>(stateName.size());
+            for (String s : stateName) {
+              long stateId = getStateIndex(s, statesList);
+              if (stateId == -1) continue; //state doesn't exist
+              stateIds.add(stateId);
+            }
+            ensures.add("(" + getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
             ensuresAnnotationExists = true;
           } else if (type.equals("Requires")) {
             List<String> stateName = getValueOnly(annotation.args.head);
@@ -157,7 +165,7 @@ public class ContractCreator extends Pretty {
               stateIds.add(stateId);
             }
             requiresAnnotationExists = true;
-            requires.add(getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()));
+            requires.add("(" + getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
           }
         }
 
