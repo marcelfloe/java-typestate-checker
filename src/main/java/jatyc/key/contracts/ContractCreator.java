@@ -136,10 +136,11 @@ public class ContractCreator extends Pretty {
         Graph graph = utils.getGraph(varDecl.type);
         List<State> statesList = new ArrayList<>(graph.getAllConcreteStates().stream().toList());
         statesList.add(graph.getEndState());
+        String paramName = getParamName(varDecl);
+        String paramClass = getParamClass(varDecl);
         for (JCTree.JCAnnotation annotation : varDecl.mods.annotations) {
           String type = annotation.annotationType.toString();
-          String paramName = getParamName(varDecl);
-          String paramClass = getParamClass(varDecl);
+
           if (type.equals("Ensures")) {
             List<String> stateName = getValueOnly(annotation.args.head);
             long stateId = getStateIndex(stateName.get(0), statesList);
@@ -157,16 +158,16 @@ public class ContractCreator extends Pretty {
             requiresAnnotationExists = true;
             requires.add(getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()));
           }
-
-          if (!ensuresAnnotationExists) {
-            List<Long> stateIds = getDroppableStateIds(graph); //guaranteed to be non-empty because of end-state
-            ensures.add("(" + getOr(stateIds.stream().map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
-          }
-          if (!requiresAnnotationExists) {
-            requires.add(getOr(statesList.stream().map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()));
-          }
-          assignable.add(paramName + "." + paramClass + "State");
         }
+
+        if (!ensuresAnnotationExists) {
+          List<Long> stateIds = getDroppableStateIds(graph); //guaranteed to be non-empty because of end-state
+          ensures.add("(" + getOr(stateIds.stream().map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
+        }
+        if (!requiresAnnotationExists) {
+          requires.add(getOr(statesList.stream().map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()));
+        }
+        assignable.add(paramName + "." + paramClass + "State");
       }
     }
   }
