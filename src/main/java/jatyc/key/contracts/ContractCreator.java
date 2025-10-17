@@ -103,7 +103,7 @@ public class ContractCreator extends Pretty {
     ClassUtils utils = checker.getUtils().classUtils;
     if (treeType != null && utils.hasProtocol(treeType)) {
       boolean stateAnnotationExists = false;
-      List<State> statesList = utils.getGraph(treeType).getAllConcreteStates().stream().toList();//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
+      List<State> statesList = new ArrayList(utils.getGraph(treeType).getAllConcreteStates().stream().toList());//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
       for (JCTree.JCAnnotation annotation : tree.mods.annotations) {
         String type = annotation.annotationType.toString();
         if (type.equals("Ensures")) { //the @Ensures annotation is used for return types as well, instead of @State
@@ -116,6 +116,7 @@ public class ContractCreator extends Pretty {
         }
       }
       if (!stateAnnotationExists) {
+        statesList.add(utils.getGraph(treeType).getEndState());
         StringBuilder sb = new StringBuilder();
         for (State state : statesList) {
           if (!sb.isEmpty()) sb.append(" || ");
