@@ -27,6 +27,7 @@ public class TreePrinterForProofs extends TreePrinterWithoutBodies {
   @Override
   public void visitMethodDef(JCTree.JCMethodDecl tree) {
     if (methodNeedsReplacement(tree)) {
+      methodPrinter.enclClassType = this.enclClassType;
       tree.accept(methodPrinter);
     } else {
       super.visitMethodDef(tree);
