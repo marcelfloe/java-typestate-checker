@@ -125,6 +125,26 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   }
 
   @Override
+  public void visitContinue(JCTree.JCContinue tree) {
+    try {
+      printAssertion(localVars.peek());
+      super.visitContinue(tree);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void visitBreak(JCTree.JCBreak tree) {
+    try {
+      printAssertion(localVars.peek());
+      super.visitBreak(tree);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
   public void visitAssign(JCTree.JCAssign tree) {
     JCTree.JCExpression lhs = tree.lhs;
     JavaType type = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
