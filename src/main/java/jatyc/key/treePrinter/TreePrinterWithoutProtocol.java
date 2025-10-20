@@ -150,7 +150,6 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     JavaType type = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
     if (type.hasProtocol()) {
       Set<State> states = type.getGraph().getAllConcreteStates();
-      states.add(type.getGraph().getEndState());
       List<Long> droppableStateIDs = getDroppableStateIDs(states);
 
       String paramName = tree.lhs.toString();
@@ -187,7 +186,6 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
         if (type.hasProtocol()) {
           StringBuilder endStates = new StringBuilder().append(localVar.name).append(" == null");
           List<Long> droppableStates = getDroppableStateIDs(type.getGraph().getAllConcreteStates());
-          droppableStates.add(type.getGraph().getEndState().getId());
           for (long droppableState : droppableStates.stream().distinct().toList()) {
             endStates.append(" || ").append(localVar.name).append(".").append(type).append("State == ").append(droppableState);
           }

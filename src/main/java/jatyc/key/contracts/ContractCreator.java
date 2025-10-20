@@ -120,7 +120,6 @@ public class ContractCreator extends Pretty {
         }
       }
       if (!stateAnnotationExists) {
-        statesList.add(utils.getGraph(treeType).getEndState());
         StringBuilder sb = new StringBuilder();
         for (State state : statesList) {
           if (!sb.isEmpty()) sb.append(" || ");
@@ -140,7 +139,6 @@ public class ContractCreator extends Pretty {
       if (protocolExists) {
         Graph graph = utils.getGraph(varDecl.type);
         List<State> statesList = new ArrayList<>(graph.getAllConcreteStates().stream().toList());
-        statesList.add(graph.getEndState());
         String paramName = getParamName(varDecl);
         String paramClass = getParamClass(varDecl);
         for (JCTree.JCAnnotation annotation : varDecl.mods.annotations) {
@@ -170,7 +168,7 @@ public class ContractCreator extends Pretty {
         }
 
         if (!ensuresAnnotationExists) {
-          List<Long> stateIds = getDroppableStateIds(graph); //guaranteed to be non-empty because of end-state
+          List<Long> stateIds = getDroppableStateIds(graph); //guaranteed to be non-empty because of valid protocol
           ensures.add("(" + getOr(stateIds.stream().map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
         }
         if (!requiresAnnotationExists) {
@@ -264,10 +262,7 @@ public class ContractCreator extends Pretty {
   }
 
   private List<Long> getDroppableStateIds(Graph graph) {
-    List<Long> droppableStateIds = new ArrayList<>();
-    droppableStateIds.add(graph.getEndState().getId());
-    droppableStateIds.addAll(graph.getAllConcreteStates().stream().filter(State::canDropHere).map(State::getId).toList());
-    return droppableStateIds.stream().distinct().toList();
+    return graph.getAllConcreteStates().stream().filter(State::canDropHere).map(State::getId).toList();
   }
 
   private String getOr(List<String> list) {
