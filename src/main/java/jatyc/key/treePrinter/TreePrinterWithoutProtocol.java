@@ -147,17 +147,17 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   @Override
   public void visitAssign(JCTree.JCAssign tree) {
     JCTree.JCExpression lhs = tree.lhs;
-    JavaType type = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
-    if (type.hasProtocol()) {
-      Set<State> states = type.getGraph().getAllConcreteStates();
+    JavaType lhsType = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
+    if (!(lhs instanceof JCTree.JCFieldAccess) && lhsType.hasProtocol()) {
+      Set<State> states = lhsType.getGraph().getAllConcreteStates();
       List<Long> droppableStateIDs = getDroppableStateIDs(states);
 
-      String paramName = tree.lhs.toString();
+      String paramName = lhs.toString();
 
       StringBuilder assertion = new  StringBuilder();
       assertion.append(paramName).append(" == null");
       for (long id : droppableStateIDs) {
-        assertion.append(" || ").append(paramName).append(".").append(type).append("State == ").append(id);
+        assertion.append(" || ").append(paramName).append(".").append(lhsType).append("State == ").append(id);
       }
 
       try {
@@ -166,6 +166,50 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
         throw new RuntimeException(e);
       }
     }
+
+    JCTree.JCExpression rhs = tree.rhs;
+    JavaType rhsType = checker.getUtils().typeIntroducer.getJavaType(rhs.type);
+    if (lhs instanceof JCTree.JCFieldAccess && rhs instanceof JCTree.JCIdent && rhsType.hasProtocol()) {
+      Set<State> states = rhsType.getGraph().getAllConcreteStates();
+      List<Long> droppableStateIDs = getDroppableStateIDs(states);
+
+      String paramName = tree.rhs.toString();
+
+      StringBuilder assertion = new  StringBuilder();
+      assertion.append(paramName).append(" == null");
+      for (long id : droppableStateIDs) {
+        assertion.append(" || ").append(paramName).append(".").append(rhsType).append("State == ").append(id);
+      }
+
+      try {
+        print("/*@ assert " + assertion + ";*/\n");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    if (lhs instanceof JCTree.JCFieldAccess && rhs instanceof JCTree.JCMethodInvocation && rhsType.hasProtocol()) {
+      Set<State> states = rhsType.getGraph().getAllConcreteStates();
+      List<Long> droppableStateIDs = getDroppableStateIDs(states);
+
+      String paramName = "temp" + UUID.randomUUID().toString().replaceAll("-", "");
+
+      StringBuilder assertion = new  StringBuilder();
+      assertion.append(paramName).append(" == null");
+      for (long id : droppableStateIDs) {
+        assertion.append(" || ").append(paramName).append(".").append(rhsType).append("State == ").append(id);
+      }
+
+      try {
+        print(rhsType + " " + paramName + " = " + rhs + ";\n");
+        print("/*@ assert " + assertion + ";*/\n");
+        print(lhs + " = " + paramName);
+        return; //not printing the original assign statement
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
     super.visitAssign(tree);
   }
 
