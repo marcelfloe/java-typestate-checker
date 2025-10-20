@@ -120,12 +120,7 @@ public class ContractCreator extends Pretty {
         }
       }
       if (!stateAnnotationExists) {
-        StringBuilder sb = new StringBuilder();
-        for (State state : statesList) {
-          if (!sb.isEmpty()) sb.append(" || ");
-          sb.append("\\result." + tree.getReturnType() + "State == " + state.getId());
-        }
-        ensures.add("(" + sb + ")");
+        ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(stateId ->  "\\result." + tree.getReturnType() + "State == " + stateId).toList()) + ")");
       }
     }
 
@@ -168,11 +163,11 @@ public class ContractCreator extends Pretty {
         }
 
         if (!ensuresAnnotationExists) {
-          List<Long> stateIds = getDroppableStateIds(graph); //guaranteed to be non-empty because of valid protocol
-          ensures.add("(" + getOr(stateIds.stream().map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
+          ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
         }
         if (!requiresAnnotationExists) {
-          requires.add(getOr(statesList.stream().map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()));
+          requires.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()) + ")");
+
         }
         assignable.add(paramName + "." + paramClass + "State");
       }
@@ -259,10 +254,6 @@ public class ContractCreator extends Pretty {
     } else {
       return actualState.get(0).getId();
     }
-  }
-
-  private List<Long> getDroppableStateIds(Graph graph) {
-    return graph.getAllConcreteStates().stream().filter(State::canDropHere).map(State::getId).toList();
   }
 
   private String getOr(List<String> list) {
