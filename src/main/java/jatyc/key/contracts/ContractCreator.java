@@ -120,7 +120,7 @@ public class ContractCreator extends Pretty {
         }
       }
       if (!stateAnnotationExists) {
-        ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(stateId ->  "\\result." + tree.getReturnType() + "State == " + stateId).toList()) + ")");
+        ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state ->  "\\result." + tree.getReturnType() + "State == " + state.getId()).toList()) + ")");
       }
     }
 
@@ -163,7 +163,7 @@ public class ContractCreator extends Pretty {
         }
 
         if (!ensuresAnnotationExists) {
-          ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(stateId ->  paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
+          ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state ->  paramName + "." + paramClass + "State == " + state.getId()).toList()) + ")");
         }
         if (!requiresAnnotationExists) {
           requires.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()) + ")");
