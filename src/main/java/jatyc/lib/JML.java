@@ -5,6 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * This annotation is used to hold JML contracts.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({
   ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR,

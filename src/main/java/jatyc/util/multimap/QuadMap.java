@@ -5,6 +5,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class implements a map, which allows to get the set of all entries containing the value for values at any position inside the entry.
+ * @param <A> the type of the value in the first position of an entry.
+ * @param <B> the type of the value in the second position of an entry.
+ * @param <C> the type of the value in the third position of an entry.
+ * @param <D> the type of the value in the fourth position of an entry.
+ */
 public class QuadMap<A,B,C,D> {
   private final Map<A, Set<Entry<A,B,C,D>>> aMap = new HashMap<>();
   private final Map<B, Set<Entry<A,B,C,D>>> bMap = new HashMap<>();
@@ -55,7 +62,6 @@ public class QuadMap<A,B,C,D> {
     bMap.get(b).add(entry);
     cMap.get(c).add(entry);
     dMap.get(d).add(entry);
-    //System.out.printf("(%s,%s,%s,%s)%n", a,b,c,d);
   }
 
   public Set<Entry<A,B,C,D>> getAMapping(A a) {

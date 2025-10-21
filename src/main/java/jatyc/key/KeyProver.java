@@ -21,9 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //TODO: find memory leak
+// (might be a leak in JaTyC only triggered by the big instances of KeY)
 
 /**
- * Class which proves all proof obligations of the source file using KeY.
+ * Class which proves all proof obligations of the source file, which are provided to proveContract(), using KeY.
  * Based on <a href="https://github.com/KeYProject/key/blob/nightly/key.core.example/src/main/java/org/key_project/Main.java">https://github.com/KeYProject/key/blob/nightly/key.core.example/src/main/java/org/key_project/Main.java</a>
  */
 public class KeyProver {
@@ -103,11 +104,22 @@ public class KeyProver {
     return proofContracts;
   }
 
+  /**
+   * Triggers the start of a proof by KeY.
+   * @param contract the contract which gets proven.
+   * @return whether the proof was successful or not.
+   */
   public boolean proveContract(Contract contract) {
     if (this.env == null || contract == null) return false;
     return proveContract(this.env, contract);
   }
 
+  /**
+   * Triggers the start of a proof by KeY.
+   * @param contract the contract which gets proven.
+   * @param maxSteps_ the maximum amount of steps KeY is allowed to use.
+   * @return whether the proof was successful or not.
+   */
   public boolean proveContract(Contract contract, int maxSteps_) {
     int temp = this.maxSteps_;
     this.maxSteps_ = maxSteps_;
@@ -170,10 +182,17 @@ public class KeyProver {
     return closed; //if proof is closed then the proof was successful
   }
 
+  /**
+   * Logs the given message.
+   * @param message the message which is supposed to be logged.
+   */
   public void log(String message) {
     LOGGER.info(message);
   }
 
+  /**
+   * Disposes of the environment.
+   */
   public void dispose() {
     if (env != null) env.dispose();
   }

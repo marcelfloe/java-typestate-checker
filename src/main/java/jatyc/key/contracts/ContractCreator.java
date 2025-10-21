@@ -54,6 +54,8 @@ public class ContractCreator extends Pretty {
     super.visitMethodDef(tree);
   }
 
+  //This method creates the contract of the given method declaration.
+  //The information based on the protocol of the enclosing class and the information based on annotations are saved in separate records.
   private void createAndLogContract(JCTree.JCMethodDecl tree) {
     if (enclClassType == null) return;
     String classType = checker.getUtils().typeIntroducer.getJavaType(enclClassType) + "";
@@ -80,13 +82,16 @@ public class ContractCreator extends Pretty {
     contractLog.log(methodInformation);
   }
 
+  //This method gets all super types of the given Type.
   private List<String> getSuperTypes(Type type) {
     if (type == null) return new ArrayList<>();
     JavaType javaType = checker.getUtils().typeIntroducer.getJavaType(type);
     return getSuperTypesRecursive(javaType).stream().map(
-      JavaType::qualifiedName).toList();
+      JavaType::qualifiedName).distinct().toList();
   }
 
+
+  //This method gets all super types of the given JavaType.
   private Set<JavaType> getSuperTypesRecursive(JavaType type) {
     Set<JavaType> supertypes = new HashSet<>();
     if (type == null) return supertypes;
@@ -97,97 +102,101 @@ public class ContractCreator extends Pretty {
     return supertypes;
   }
 
+  //This method creates the annotation information of the given method declaration and stores it in the given lists.
   private void getAnnotationInformation(List<String> requires, List<String> ensures, List<String> assignable, JCTree.JCMethodDecl tree) {
     if (tree == null || tree.restype == null) return;
+
     Type treeType = tree.restype.type;
     ClassUtils utils = checker.getUtils().classUtils;
+
+    //Here the annotation of the return type is checked.
+    //This annotation is referred to as @State in literature about JaTyC, but it actually reuses the @Ensures annotation of parameters.
     if (treeType != null && utils.hasProtocol(treeType)) {
       boolean stateAnnotationExists = false;
-      List<State> statesList = new ArrayList<>(utils.getGraph(treeType).getAllConcreteStates().stream().toList());//getting "@State"-Annotation (actually using "@Ensures" but at a different position to parameters)
+      List<State> statesList = new ArrayList<>(utils.getGraph(treeType).getAllConcreteStates().stream().toList());
+
       for (JCTree.JCAnnotation annotation : tree.mods.annotations) {
         String type = annotation.annotationType.toString();
         if (type.equals("Ensures")) { //the @Ensures annotation is used for return types as well, instead of @State
-          List<String> stateName = getValueOnly(annotation.args.head);
-          List<Long> stateIds = new ArrayList<>(stateName.size());
-          for (String s : stateName) {
-            long stateId = getStateIndex(s, statesList);
-            if (stateId == -1) continue; //state doesn't exist
-            stateIds.add(stateId);
-          }
+          List<String> stateNames = getValueOnly(annotation.args.head); //the value of the annotation might be a union type
+          List<Long> stateIds = getStateIds(statesList, stateNames);
           ensures.add("(" + getOr(stateIds.stream().map(stateId -> "\\result." + tree.getReturnType() + "State == " + stateId).toList()) + ")");
           stateAnnotationExists = true;
           break;
         }
       }
-      if (!stateAnnotationExists) {
+      if (!stateAnnotationExists) { //the annotation is missing -> default required (default = SharedType -> object has to have finished its protocol -> all droppable states)
         ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state ->  "\\result." + tree.getReturnType() + "State == " + state.getId()).toList()) + ")");
       }
     }
 
+    //Here the annotations of the parameter types are checked.
     for (JCTree.JCVariableDecl varDecl : tree.params) { //getting @Ensures and @Requires of the parameters
       if (varDecl.type == null) {
         continue;
       }
+
       boolean protocolExists = utils.hasProtocol(varDecl.type);
       boolean ensuresAnnotationExists = false;
       boolean requiresAnnotationExists = false;
+
       if (protocolExists) {
         Graph graph = utils.getGraph(varDecl.type);
         List<State> statesList = new ArrayList<>(graph.getAllConcreteStates().stream().toList());
         String paramName = getParamName(varDecl);
         String paramClass = getParamClass(varDecl);
+
         for (JCTree.JCAnnotation annotation : varDecl.mods.annotations) {
           String type = annotation.annotationType.toString();
 
           if (type.equals("Ensures")) {
-            List<String> stateName = getValueOnly(annotation.args.head);
-            List<Long> stateIds = new ArrayList<>(stateName.size());
-            for (String s : stateName) {
-              long stateId = getStateIndex(s, statesList);
-              if (stateId == -1) continue; //state doesn't exist
-              stateIds.add(stateId);
-            }
+            List<String> stateNames = getValueOnly(annotation.args.head); //the value of the annotation might be a union type
+            List<Long> stateIds = getStateIds(statesList, stateNames);
             ensures.add("(" + getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
             ensuresAnnotationExists = true;
           } else if (type.equals("Requires")) {
-            List<String> stateName = getValueOnly(annotation.args.head);
-            List<Long> stateIds = new ArrayList<>(stateName.size());
-            for (String s : stateName) {
-              long stateId = getStateIndex(s, statesList);
-              if (stateId == -1) continue; //state doesn't exist
-              stateIds.add(stateId);
-            }
+            List<String> stateNames = getValueOnly(annotation.args.head); //the value of the annotation might be a union type
+            List<Long> stateIds = getStateIds(statesList, stateNames);
             requiresAnnotationExists = true;
             requires.add("(" + getOr(stateIds.stream().map(stateId -> paramName + "." + paramClass + "State == " + stateId).toList()) + ")");
           }
         }
 
-        if (!ensuresAnnotationExists) {
+        if (!ensuresAnnotationExists) {//the annotation is missing -> default required (default = SharedType -> object has to have finished its protocol -> all droppable states)
           ensures.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state ->  paramName + "." + paramClass + "State == " + state.getId()).toList()) + ")");
         }
-        if (!requiresAnnotationExists) {
+        if (!requiresAnnotationExists) {//the annotation is missing -> default required (default = SharedType -> object has to have finished its protocol -> all droppable states)
           requires.add("(" + getOr(statesList.stream().filter(State::canDropHere).map(state -> paramName + "." + paramClass + "State == " + state.getId()).toList()) + ")");
-
         }
         assignable.add(paramName + "." + paramClass + "State");
       }
     }
   }
 
+  //This method creates the protocol information of the given method declaration and stores it in the given lists.
   private void getProtocolInformation(List<String> requires, List<String> ensures, List<String> assignable, JCTree.JCMethodDecl tree) {
     ClassUtils utils = checker.getUtils().classUtils;
     if (enclClassType == null || !utils.hasProtocol(enclClassType)) {
       return; //no protocol -> no information required
     }
+
+    /*
+    The protocol information is saved as mapping from states to their allowed method calls.
+    We need a mapping from the method to the states which allow calling it.
+     */
+
     Graph graph = utils.getGraph(enclClassType);
     QuadMap<OriginalState, MethodSignature, ReturnedValue, NewState>
       quadMap = getAllMappings(graph);
     Name methodName = tree.name;
     String stateName = enclClassType + "State";
-    if (methodName.toString().equals("<init>")) {
+
+    if (methodName.toString().equals("<init>")) { //handling standard constructors
       //TODO: This might not apply to different constructors
       // Are other constructors properly managed by the normal method handling?
-      ensures.add("(" + stateName + " == " + graph.getInitialState().getId() + ")");
+      ensures.add("(" + stateName + " == " + graph.getInitialState().getId() + ")"); //constructors have to end in the initial state
+
+      //as the method signatures for constructors differ between child and parent type the states of supertypes have to already be included
       Set<JavaType> supertypes = checker.getUtils().typeIntroducer.getJavaType(enclClassType).getSuperTypes();
       Queue<JavaType> queue = new LinkedList<>(supertypes);
       while (!queue.isEmpty()) {
@@ -203,16 +212,17 @@ public class ContractCreator extends Pretty {
         }
       }
 
-    } else {
+    } else { //handling normal methods
       Set<QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState>>
         set = quadMap.getBMapping(createMethodSignature(tree, enclClassType + ""));
-      if (set == null) return;
+      if (set == null) return; //method isn't mentioned in the protocol
+
       List<String> originalStates = new ArrayList<>(set.size());
       for (QuadMap.Entry<OriginalState, MethodSignature, ReturnedValue, NewState> e : set) {
         originalStates.add(e.w().originalStateId);
-        if (e.y() == null) {
+        if (e.y() == null) { //returned value doesn't exist and therefore the next state is only dependent on the previous state
           ensures.add("(\\old(" + stateName + ") == " + e.w().originalStateId + " ==> " + stateName + " == " + e.z().newStateId + ")");
-        } else {
+        } else { // returned value exists and therefore the next state depends on the previous state and the returned value
           ensures.add("((\\old(" + stateName + ") == " + e.w().originalStateId + " && \\result == " + e.y().returnedValue +") ==> " + stateName + " == " + e.z().newStateId + ")");
         }
       }
@@ -221,12 +231,15 @@ public class ContractCreator extends Pretty {
     assignable.add(stateName);
   }
 
+  //Returns the content of the right hand side of the assign.
   private List<String> getValueOnly(JCTree tree) {
     if (tree instanceof JCTree.JCAssign) {
       JCTree rightTree = ((JCTree.JCAssign) tree).rhs;
-      if (rightTree instanceof JCTree.JCLiteral) {
+
+      if (rightTree instanceof JCTree.JCLiteral) { //single value
         return List.of((((JCTree.JCLiteral) rightTree).value).toString());
-      } else if (rightTree instanceof JCTree.JCNewArray) {
+
+      } else if (rightTree instanceof JCTree.JCNewArray) { //multiple values
         List<String> value = new ArrayList<>();
         for (JCTree.JCExpression elem : ((JCTree.JCNewArray) rightTree).elems) {
           if (elem  instanceof JCTree.JCLiteral) {
@@ -236,7 +249,7 @@ public class ContractCreator extends Pretty {
         return value;
       }
     }
-    return null;
+    return null; //no assign -> unspecified
   }
 
   private String getParamName(JCTree.JCVariableDecl varDecl) {
@@ -245,6 +258,16 @@ public class ContractCreator extends Pretty {
 
   private String getParamClass(JCTree.JCVariableDecl varDecl) {
     return varDecl.vartype.toString();
+  }
+
+  private List<Long> getStateIds(List<State> states, List<String> stateNames) {
+    List<Long> stateIds = new ArrayList<>();
+    for (String s : stateNames) {
+      long stateId = getStateIndex(s, states);
+      if (stateId == -1) continue; //state doesn't exist; should be impossible as they are already checked by JaTyC
+      stateIds.add(stateId);
+    }
+    return stateIds;
   }
 
   private long getStateIndex(String state, List<State> states) {
@@ -308,10 +331,12 @@ public class ContractCreator extends Pretty {
     return quadMap;
   }
 
+  //these records only exist to avoid confusion of 3 different String values
   protected record OriginalState (String originalStateId) {}
   protected record ReturnedValue (String returnedValue) {}
   protected record NewState (String newStateId) {}
 
+  //creates a method signature based on the enclosing class and the method declaration
   public static MethodSignature createMethodSignature(JCTree.JCMethodDecl tree, String enclosingClass) {
     return new MethodSignature(enclosingClass, tree.name + "", new ArrayList<>(tree.params.map(p -> {if (p.type == null) {return "";} else {return p.type.baseType() + "";}})));
   }

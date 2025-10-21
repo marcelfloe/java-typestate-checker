@@ -5,6 +5,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class implements a map, which allows to get the set of all entries containing the value for values at any position inside the entry.
+ * @param <A> the type of the value in the first position of an entry.
+ * @param <B> the type of the value in the second position of an entry.
+ * @param <C> the type of the value in the third position of an entry.
+ */
 public class TriMap <A,B,C> {
   private final Map<A, Set<Entry<A,B,C>>> aMap = new HashMap<>();
   private final Map<B, Set<Entry<A,B,C>>> bMap = new HashMap<>();

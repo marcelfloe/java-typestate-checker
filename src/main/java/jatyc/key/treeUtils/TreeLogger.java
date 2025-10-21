@@ -6,6 +6,9 @@ import java.io.Writer;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class logs for every JCTree, to which file it belongs.
+ */
 public class TreeLogger extends Pretty {
   //TODO: find version mismatch
   //the out-commented code exists due to a version mismatch

@@ -7,14 +7,14 @@ import jatyc.key.contracts.MethodSignature;
 import java.io.Writer;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class identifies the method signature of the method which contains the given position.
+ */
 public class SignatureFinder extends Pretty {
-  //TODO: find version mismatch
-  //the out-commented code exists due to a version mismatch
-
   private JCTree.JCMethodDecl methodReference;
   private final JCTree position;
   private JCTree enclClass;
-  private JCTree actualEnclClass;
+  private JCTree actualEnclClass; //stores the class enclosing the position in case of multiple (sub-)classes
 
   public SignatureFinder(JCTree position) {
     super(new Writer() {
@@ -50,7 +50,7 @@ public class SignatureFinder extends Pretty {
     super.visitMethodDef(tree);
   }
 
-  public MethodSignature getMethodSignatur() {
+  public MethodSignature getMethodSignature() {
     if (methodReference == null) return null;
     return ContractCreator.createMethodSignature(methodReference, actualEnclClass.type + "");
   }

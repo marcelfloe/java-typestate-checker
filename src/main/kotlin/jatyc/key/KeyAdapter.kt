@@ -32,6 +32,9 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
   private val subtypesLog = SubtypesLog()
   private val checkedMethods = HashMap<MethodSignature, Boolean>()
 
+  /**
+   * Logs all given CompilationUnitTrees.
+   */
   fun put(root: CompilationUnitTree) {
     val sourcePath = root.sourceFile.toString()
     if (sourceFiles.contains(sourcePath)) return
@@ -39,12 +42,15 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     converted = false //new file needs conversion
     if (root is JCCompilationUnit) {
       root.accept(TreeLogger(jcTrees, sourcePath)) //saving a reference to the source-file for all JCTrees inside the JCCompilationUnit
+
       val clone = getClone(root)  //deep-cloning root to prevent information loss due to editing by the CFVisitor
-      clone.accept(TreeCloner())
       compilationUnits[sourcePath] = clone
     }
   }
 
+  /**
+   * Converts all CompilationUnitTrees, which haven't been converted yet, into files for KeY.
+   */
   private fun convert() {
     //TODO: figure out when the checker touches files the first time and when it actually checks them as the contracts might not include parent contracts if checked at the wrong time
     // Maybe the errors which are reported early are errors outside the java code? e.g. syntax errors
@@ -76,6 +82,9 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     converted = true
   }
 
+  /**
+   * Starts a check of the method containing the given error position.
+   */
   fun check(source: Any) : Boolean {
     if (source !is JCTree) return false //sources should always be a JCTree, otherwise this adapter can't work with it.
 
@@ -150,14 +159,22 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     return result
   }
 
+  /**
+   * Creates a deep clone of the given JCCompilationUnit
+   */
   private fun getClone(original: JCCompilationUnit): JCCompilationUnit {
     val clone = original.clone()
     if (clone is JCCompilationUnit) {
+      clone.accept(TreeCloner())
       return clone
     }
     return original
   }
 
+  /**
+   * Creates a MethodSignature based on the given Contract.
+   * The second field describes the class, which is the source of the contract.
+   */
   private fun methodSignatureFromKeyContract(contract : Contract) : Pair<MethodSignature, String>? {
     val name = contract.name.split("[", "::", "(", ",", ")")
 
@@ -185,6 +202,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     compilationUnits[fileName]?.accept(signatureFinder)
 
-    return signatureFinder.getMethodSignatur()
+    return signatureFinder.getMethodSignature()
   }
 }

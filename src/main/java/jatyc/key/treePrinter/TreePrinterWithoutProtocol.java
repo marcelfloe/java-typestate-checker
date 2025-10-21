@@ -13,8 +13,9 @@ import java.io.Writer;
 import java.util.*;
 
 /**
- * This class prints a version of the given tree that does not include any protocol information of this-pointers,
+ * This class prints a version of the given tree that does not include any protocol information,
  * but all typestate information based on annotations.
+ * It also prints comments containing assertion for protocol completion.
  */
 public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
 
@@ -46,7 +47,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   }
 
   @Override
-  public void visitVarDef(JCTree.JCVariableDecl tree) {
+  public void visitVarDef(JCTree.JCVariableDecl tree) { //logging local vars for protocol completion
     if (!localVars.empty()) localVars.peek().add(new LocalVar(tree.sym.toString(), tree.type));
     super.visitVarDef(tree);
   }
@@ -58,10 +59,10 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
       return;
     }
 
-    localVars.push(new HashSet<>());
-    if (tree.stats.last() instanceof JCTree.JCReturn) {
+    localVars.push(new HashSet<>()); //new name space for local vars
+    if (tree.stats.last() instanceof JCTree.JCReturn) { //assertion handled by return statement
       super.visitBlock(tree);
-    } else {
+    } else { //assertion at end of method body required
       try {
         printFlags(tree.flags);
         printBlockWithAssertion(tree.stats);
@@ -69,14 +70,14 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
         throw new RuntimeException(e);
       }
     }
-    localVars.pop();
+    localVars.pop(); //removing the name space for local vars
   }
 
   public void printBlockWithAssertion(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException { //copy from Pretty, but with inserted assertion
     print("{");
     println();
     printStats(stats);
-    printAssertion(localVars.peek());
+    printAssertion(localVars.peek()); //assert protocol completion for all locals vars in this method body
     print("}");
   }
 
@@ -127,7 +128,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   @Override
   public void visitContinue(JCTree.JCContinue tree) {
     try {
-      printAssertion(localVars.peek());
+      printAssertion(localVars.peek()); //assertion for the protocol completion of local vars in this name space so far
       super.visitContinue(tree);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -137,7 +138,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
   @Override
   public void visitBreak(JCTree.JCBreak tree) {
     try {
-      printAssertion(localVars.peek());
+      printAssertion(localVars.peek()); //assertion for the protocol completion of local vars in this name space so far
       super.visitBreak(tree);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -149,19 +150,10 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     JCTree.JCExpression lhs = tree.lhs;
     JavaType lhsType = checker.getUtils().typeIntroducer.getJavaType(lhs.type);
     if (!(lhs instanceof JCTree.JCFieldAccess) && lhsType.hasProtocol()) {
-      Set<State> states = lhsType.getGraph().getAllConcreteStates();
-      List<Long> droppableStateIDs = getDroppableStateIDs(states);
-
+      //assigning a new value to a variable with protocol -> old value has to have finished its protocol
       String paramName = lhs.toString();
-
-      StringBuilder assertion = new  StringBuilder();
-      assertion.append(paramName).append(" == null");
-      for (long id : droppableStateIDs) {
-        assertion.append(" || ").append(paramName).append(".").append(lhsType).append("State == ").append(id);
-      }
-
       try {
-        print("/*@ assert " + assertion + ";*/\n");
+        printAssertion(List.of(new LocalVar(paramName, lhsType.getOriginal())));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -170,39 +162,23 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     JCTree.JCExpression rhs = tree.rhs;
     JavaType rhsType = checker.getUtils().typeIntroducer.getJavaType(rhs.type);
     if (lhs instanceof JCTree.JCFieldAccess && rhs instanceof JCTree.JCIdent && rhsType.hasProtocol()) {
-      Set<State> states = rhsType.getGraph().getAllConcreteStates();
-      List<Long> droppableStateIDs = getDroppableStateIDs(states);
-
+      //assigning a new value with protocol to a field and value is a variable -> value has to have finished its protocol (shared type)
       String paramName = tree.rhs.toString();
-
-      StringBuilder assertion = new  StringBuilder();
-      assertion.append(paramName).append(" == null");
-      for (long id : droppableStateIDs) {
-        assertion.append(" || ").append(paramName).append(".").append(rhsType).append("State == ").append(id);
-      }
-
       try {
-        print("/*@ assert " + assertion + ";*/\n");
+        printAssertion(List.of(new LocalVar(paramName, rhsType.getOriginal())));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     if (lhs instanceof JCTree.JCFieldAccess && rhs instanceof JCTree.JCMethodInvocation && rhsType.hasProtocol()) {
-      Set<State> states = rhsType.getGraph().getAllConcreteStates();
-      List<Long> droppableStateIDs = getDroppableStateIDs(states);
-
+      //assigning a new value with protocol to a field and value is returned by method call
+      // -> method call needs to be moved in front of assignment
+      // -> returned value has to have finished its protocol (shared type)
       String paramName = "temp" + UUID.randomUUID().toString().replaceAll("-", "");
-
-      StringBuilder assertion = new  StringBuilder();
-      assertion.append(paramName).append(" == null");
-      for (long id : droppableStateIDs) {
-        assertion.append(" || ").append(paramName).append(".").append(rhsType).append("State == ").append(id);
-      }
-
       try {
         print(rhsType + " " + paramName + " = " + rhs + ";\n");
-        print("/*@ assert " + assertion + ";*/\n");
+        printAssertion(List.of(new LocalVar(paramName, rhsType.getOriginal())));
         print(lhs + " = " + paramName);
         return; //not printing the original assign statement
       } catch (IOException e) {
@@ -218,6 +194,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     if (!assertion.isBlank()) print("/*@ assert " + assertion +";*/\n");
   }
 
+  //creates an assertion that all given local vars have finished their protocols
   private String getAssertion(Collection<LocalVar> localVars ) {
     StringBuilder assertion = new StringBuilder();
     for (LocalVar localVar : localVars) {
@@ -241,6 +218,7 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
     return assertion.toString();
   }
 
+  //gets the IDs of all states in the given collection, which are droppable
   private List<Long> getDroppableStateIDs(Collection<State> states) {
     List<Long> droppableStateIDs = new ArrayList<>();
     for (State state : states) {

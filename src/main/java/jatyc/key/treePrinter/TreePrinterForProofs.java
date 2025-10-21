@@ -11,7 +11,8 @@ import java.io.Writer;
 
 /**
  * This class prints a version of the given tree that does not include any method bodies,
- * but does include the protocol information of this-pointers and all typestate information based on annotations.
+ * but does include the protocol information and all typestate information based on annotations.
+ * Except for one method, which is printed with body, but without protocol information.
  */
 public class TreePrinterForProofs extends TreePrinterWithoutBodies {
   private final TreePrinterWithoutProtocol methodPrinter;

@@ -10,6 +10,8 @@ import java.util.List;
  */
 
 public record MethodSignature(String classType, String methodName, List<String> parameterTypes) {
+
+  //these records are considered to be equal, if all contained Strings are considered to be equal
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof MethodSignature other)) return false;

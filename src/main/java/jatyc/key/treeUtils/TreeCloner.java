@@ -5,6 +5,9 @@ import com.sun.tools.javac.tree.Pretty;
 import java.io.Writer;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class creates a deep clone of the given tree.
+ */
 public class TreeCloner extends Pretty {
   //TODO: find version mismatch
   //the out-commented code exists due to a version mismatch

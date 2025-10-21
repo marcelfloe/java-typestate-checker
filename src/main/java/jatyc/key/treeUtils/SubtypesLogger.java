@@ -11,10 +11,10 @@ import java.io.Writer;
 import java.util.HashSet;
 import java.util.Stack;
 
+/**
+ * This class stores the types of all given class definitions in the subtype logs of all their super types.
+ */
 public class SubtypesLogger extends Pretty {
-  //TODO: find version mismatch
-  //the out-commented code exists due to a version mismatch
-
   private final SubtypesLog subtypes;
   private final JavaTypestateChecker checker;
 

@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This class stores the log of subtypes to each given type.
+ */
 public class SubtypesLog extends HashMap<String, Set<String>> {
   @Override
   public Set<String> get(Object key) {
