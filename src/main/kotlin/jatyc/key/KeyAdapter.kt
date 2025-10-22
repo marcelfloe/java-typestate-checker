@@ -73,8 +73,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
       val content = writer.toString()
 
-      println("CONTENT: $content")
-
       val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
       directory.putFile(fileName.first(), fileName.last(), content, packageName.split("."))
@@ -109,8 +107,6 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
     root.accept(printer)
 
     val content = writer.toString()
-
-    println("CONTENT: $content")
 
     //saving converted file
     val fileName = root.sourceFile.name.split("\\").last().split(".")
