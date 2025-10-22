@@ -141,7 +141,10 @@ public class CommonPrinterFeatures extends Pretty {
     }
     if (!assignableBuilder.isEmpty()) {
       contract += "\n//@ assignable " + assignableBuilder + ";";
+    } else if (withProtocolInformation) {
+      contract += "\n//@ assignable \\nothing" + assignableBuilder + ";";
     }
+
 
     return "\n//@ public normal_behavior \n//@ requires true;" + contract;
   }
@@ -163,8 +166,12 @@ public class CommonPrinterFeatures extends Pretty {
       requires.add(info.getRequiresWithProtocol());
       ensures.add(info.getEnsuresWithProtocol());
       assignable.add(info.getAssignableWithProtocol());
-      //assignable clauses need to hold references to their subtypes to avoid conflicting contracts
-      assignable.addAll(subtypes.get(info.signature().classType()).stream().map(t -> t + "State").toList());
+      //If the assignable clause doesn't include the class state, then the method isn't part of the protocol and therefore it is an anytime method.
+      //Anytime methods are not allowed to change any state information of the object they are called on.
+      if (info.getAssignableWithProtocol().contains(info.signature().classType() + "State")) {
+        //assignable clauses need to hold references to their subtypes to avoid conflicting contracts
+        assignable.addAll(subtypes.get(info.signature().classType()).stream().map(t -> t + "State").toList());
+      }
     } else {
       requires.add(info.getRequiresWithoutProtocol());
       ensures.add(info.getEnsuresWithoutProtocol());
@@ -205,8 +212,6 @@ public class CommonPrinterFeatures extends Pretty {
       assignable.add(info.getAssignableWithoutProtocol());
     }
   }
-
-  //Returns the content of the right hand side of the assign.
 
   /**
    * Returns the content of the right hand side of the assign.
