@@ -29,4 +29,6 @@ ClientCode.java:17: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | 
 ## Output with JML contract
 
 ```
+Identical to output above due to KeY throwing an exception.
+Manual proving required.
 ```

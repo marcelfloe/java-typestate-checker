@@ -32,4 +32,6 @@ ClientCode.java:18: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | 
 ## Output with JML contract
 
 ```
+Identical to output above.
+Manual proving required.
 ```

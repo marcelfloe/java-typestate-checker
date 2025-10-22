@@ -33,7 +33,10 @@ ClientCode.java:17: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | 
 
 ```
 [...] INFO  KeyProver - Starting KeY example application.
-[...] INFO  AbstractProblemLoader - Loading environment from [...]\Temp\key-temp3531317165743506222\source
+[...] INFO  ProofSettings - Load proof dependent settings from file ...\proof-settings.json
+[...] INFO  AbstractProblemLoader - Loading environment from ...\key-temp9818921671671542193\source
+[...] INFO  AbstractProblemLoader - Creating init config
+[...] INFO  AbstractProblemLoader - Loading environment from ...\Temp\key-temp9818921671671542193\source
 [...] INFO  AbstractProblemLoader - Creating init config
 [...] INFO  KeyProver - Contract 'JML normal_behavior operation contract 0' of ClientCode::example is verified.
 [...] INFO  KeyProver - Contract proven, no error!
