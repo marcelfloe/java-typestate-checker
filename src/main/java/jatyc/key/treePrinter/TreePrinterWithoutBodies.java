@@ -52,7 +52,7 @@ public class TreePrinterWithoutBodies extends CommonPrinterFeatures {
 
   }
 
-  public void printBlockWithGhostVar(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException { //copy from Pretty, but with inserted assertion
+  public void printBlockWithGhostVar(com.sun.tools.javac.util.List<? extends JCTree> stats) throws IOException { //copy from Pretty, but with inserted definition of ghost field
     print("{");
     println();
     for (String type : subtypes.get(enclClassType.baseType().toString())) {
