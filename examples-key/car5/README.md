@@ -1,16 +1,32 @@
-## Output without JML-contract
-
-```[12:16:26.477] INFO  KeyProver - Starting KeY example application.
-[...] INFO  ProofSettings - Load proof dependent settings from file [...]\proof-settings.json
-[...] INFO  AbstractProblemLoader - Loading environment from [...]\source
-[...] INFO  AbstractProblemLoader - Creating init config
-[...] INFO  AbstractProblemLoader - Loading environment from [...]\source
-[...] INFO  AbstractProblemLoader - Creating init config
-[...] INFO  KeyProver - Contract not found: ClientCode.example()
-car4\ClientCode.java:8: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | State{SUV, OFF}
+## Output without KeY
+```
+ClientCode.java:18: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | State{SUV, OFF}
     suv.switchMode();
                   ^
-1 error
+ClientCode.java:19: error: Cannot call [setFourWheels] on State{SUV, COMFORT_ON} | State{SUV, SPORT_ON}
+    suv.setFourWheels(true);
+                     ^
+2 errors
+```
+
+## Output without JML-contract
+
+```
+[...] INFO  KeyProver - Starting KeY example application.
+[...] INFO  ProofSettings - Load proof dependent settings from file ...\proof-settings.json
+[...] INFO  AbstractProblemLoader - Loading environment from ...\Temp\key-temp436502371325413411\source
+[...] INFO  AbstractProblemLoader - Creating init config
+[...] INFO  AbstractProblemLoader - Loading environment from ...\Temp\key-temp436502371325413411\source
+[...] INFO  AbstractProblemLoader - Creating init config
+[...] INFO  KeyProver - Contract 'JML normal_behavior operation contract 0' of ClientCode::example is still open.
+[...] INFO  KeyProver - Contract could not be proven!
+ClientCode.java:19: error: Cannot call [setFourWheels] on State{SUV, COMFORT_ON} | State{SUV, SPORT_ON}
+    suv.setFourWheels(true);
+                     ^
+ClientCode.java:18: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | State{SUV, OFF}
+    suv.switchMode();
+                  ^
+2 errors
 ```
 
 ## Output with JML contract
