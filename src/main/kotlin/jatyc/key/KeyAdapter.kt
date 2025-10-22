@@ -16,6 +16,7 @@ import jatyc.key.treeUtils.SubtypesLogger
 import jatyc.key.treeUtils.TreeCloner
 import jatyc.key.treeUtils.TreeLogger
 import java.io.StringWriter
+import java.util.concurrent.TimeUnit
 
 /**
  * This class is used to allow for error checking using KeY.
@@ -72,6 +73,8 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
       root.accept(printer)
 
       val content = writer.toString()
+
+      println("Stub class of ${root.sourceFile.name} for manual checking: $content")
 
       val packageName = if (root.packageName == null) {""} else {root.packageName.toString()}
 
@@ -131,20 +134,20 @@ class KeyAdapter (val checker: JavaTypestateChecker) {
 
     val result = prover.proveContract(contractForProof)
 
+    var paramTypes = ""
+    for (paramType in methodSignature.parameterTypes) {
+      if (paramTypes.isNotBlank()) paramTypes += ", "
+      paramTypes += paramType
+    }
     if (contractForProof == null) {
-      var paramTypes = ""
-      for (paramType in methodSignature.parameterTypes) {
-        if (paramTypes.isNotBlank()) paramTypes += ", "
-        paramTypes += paramType
-      }
       prover.log("Contract not found: ${methodSignature.classType}.${methodSignature.methodName}($paramTypes)")
     } else if (result) {
-      if (result) {
         prover.log("Contract proven, no error!")
-      } else {
-        prover.log("Contract could not be proven!")
-      }
+    } else {
+      prover.log("Contract could not be proven!")
+      println("Class with contract of ${methodSignature.classType}.${methodSignature.methodName}($paramTypes) for manual checking: $content")
     }
+
 
     checkedMethods[methodSignature] = result
 
