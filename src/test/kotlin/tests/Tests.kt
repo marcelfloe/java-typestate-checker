@@ -3,13 +3,31 @@ package tests
 import org.junit.runners.Parameterized.Parameters
 import java.io.File
 
-val ignore = listOf("linked-list", "generics")
-val only = emptyList<String>()
+private const val dir0 = "debug"
+private const val dir1 = "basic"
+private const val dir2 = "config"
+private const val dir3 = "droppables"
+private const val dir4 = "resolution"
+private const val dir5 = "linked-list"
+private const val dir6 = "linearity"
+private const val dir7 = "exceptions"
+private const val dir8 = "generics"
+private const val dir9 = "subtyping"
+private const val dir10 = "assignments"
+private const val dir11 = "suppress-warnings"
+private const val dir12 = "class-analysis"
+private const val dir13 = "complex-flow"
+private const val dir14 = "typestatetrees"
+private const val dir15 = "cfg"
+
+//tests for linked list and generics don't work
+val ignore = listOf("linked-list", "generics"/*, dir9, dir14*/)
+//val only = emptyList<String>()
+val only = listOf(dir0, dir1, dir2, dir3, dir4, dir5, dir6, dir7)
+//val only = listOf(dir8, dir9, dir10, dir11, dir12, dir13, dir14, dir15)
 
 private val defaultOptsNoTypeInfo = arrayOf("-Anomsgtext", "-AtypestateTrees=disable")
 private val defaultOpts = defaultOptsNoTypeInfo.plus("-AshowTypeInfo")
-
-private const val dir0 = "debug"
 
 // A folder where we can make tests and narrow down an issue
 class DebugTests(testFiles: List<File>) : PerDirectoryTest(
@@ -24,8 +42,6 @@ class DebugTests(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir1 = "basic"
-
 class BasicTests(testFiles: List<File>) : PerDirectoryTest(
   dir1,
   testFiles,
@@ -37,8 +53,6 @@ class BasicTests(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir1)
   }
 }
-
-private const val dir2 = "config"
 
 class ConfigTest(testFiles: List<File>) : PerDirectoryTest(
   dir2,
@@ -52,8 +66,6 @@ class ConfigTest(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir3 = "droppables"
-
 class DroppablesTest(testFiles: List<File>) : PerDirectoryTest(
   dir3,
   testFiles,
@@ -65,8 +77,6 @@ class DroppablesTest(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir3)
   }
 }
-
-private const val dir4 = "resolution"
 
 class ResolutionTest(testFiles: List<File>) : PerDirectoryTest(
   dir4,
@@ -80,8 +90,6 @@ class ResolutionTest(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir5 = "linked-list"
-
 class LinkedListTest(testFiles: List<File>) : PerDirectoryTest(
   dir5,
   testFiles,
@@ -93,8 +101,6 @@ class LinkedListTest(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir5)
   }
 }
-
-private const val dir6 = "linearity"
 
 class LinearityTest(testFiles: List<File>) : PerDirectoryTest(
   dir6,
@@ -108,8 +114,6 @@ class LinearityTest(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir7 = "exceptions"
-
 class ExceptionsTest(testFiles: List<File>) : PerDirectoryTest(
   dir7,
   testFiles,
@@ -121,8 +125,6 @@ class ExceptionsTest(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir7)
   }
 }
-
-private const val dir8 = "generics"
 
 class GenericsTest(testFiles: List<File>) : PerDirectoryTest(
   dir8,
@@ -136,8 +138,6 @@ class GenericsTest(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir9 = "subtyping"
-
 class SubtypingTest(testFiles: List<File>) : PerDirectoryTest(
   dir9,
   testFiles,
@@ -149,8 +149,6 @@ class SubtypingTest(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir9)
   }
 }
-
-private const val dir10 = "assignments"
 
 class AssignmentsTests(testFiles: List<File>) : PerDirectoryTest(
   dir10,
@@ -164,8 +162,6 @@ class AssignmentsTests(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir11 = "suppress-warnings"
-
 class SuppressWarningsTests(testFiles: List<File>) : PerDirectoryTest(
   dir11,
   testFiles,
@@ -177,8 +173,6 @@ class SuppressWarningsTests(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir11)
   }
 }
-
-private const val dir12 = "class-analysis"
 
 class ClassAnalysisTests(testFiles: List<File>) : PerDirectoryTest(
   dir12,
@@ -192,8 +186,6 @@ class ClassAnalysisTests(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir13 = "complex-flow"
-
 class ComplexFlowTests(testFiles: List<File>) : PerDirectoryTest(
   dir13,
   testFiles,
@@ -206,8 +198,6 @@ class ComplexFlowTests(testFiles: List<File>) : PerDirectoryTest(
   }
 }
 
-private const val dir14 = "typestatetrees"
-
 class TypestateTreesTests(testFiles: List<File>) : PerDirectoryTest(
   dir14,
   testFiles,
@@ -219,8 +209,6 @@ class TypestateTreesTests(testFiles: List<File>) : PerDirectoryTest(
     val testDirs = arrayOf(dir14)
   }
 }
-
-private const val dir15 = "cfg"
 
 class CFGTests(testFiles: List<File>) : PerDirectoryTest(
   dir15,

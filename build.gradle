@@ -42,7 +42,7 @@ compileTestKotlin {
 ext {
   versions = [
     kotlin                : "1.7.21",
-    antlr4                : "4.11.1",
+    antlr4                : "4.13.2",
     checkerFramework      : "3.28.0",
     errorproneJavacVersion: "9+181-r4173-1",
     junit                 : "4.13.2",
@@ -94,9 +94,17 @@ dependencies {
   testImplementation "org.checkerframework:framework-test:${versions.checkerFramework}"
 
   errorproneJavac "com.google.errorprone:javac:${versions.errorproneJavacVersion}"
+
+  // https://mvnrepository.com/artifact/org.key-project/key.ui
+  compile implementation("org.key-project:key.ui:2.12.3")
+  // https://mvnrepository.com/artifact/org.key-project/key.core
+  compile implementation("org.key-project:key.core:2.12.3")
+
+  implementation 'ch.qos.logback:logback-classic:1.5.18'
 }
 
 jar {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   from {
     configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
   }

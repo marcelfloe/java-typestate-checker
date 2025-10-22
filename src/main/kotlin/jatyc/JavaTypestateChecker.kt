@@ -7,6 +7,7 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment
 import com.sun.tools.javac.util.Log
 import jatyc.core.adapters.CFVisitor
 import jatyc.core.typesystem.TypeInfo
+import jatyc.key.KeyAdapter
 import jatyc.utils.JTCUtils
 import org.checkerframework.framework.source.SourceChecker
 import org.checkerframework.framework.source.SourceVisitor
@@ -23,6 +24,8 @@ const val typestateTreesOpt = "typestateTrees"
 const val messagesFile = "/messages.properties"
 
 class JavaTypestateChecker : SourceChecker() {
+
+  val keyAdapter = KeyAdapter(this)
 
   val utils = JTCUtils(this)
 
@@ -113,6 +116,7 @@ class JavaTypestateChecker : SourceChecker() {
   }
 
   override fun reportError(source: Any, messageKey: String, vararg args: Any?) {
+    if (keyAdapter.check(source)) return //disregard error as KeY was able to prove correctness
     if (shouldFixErrorMsg()) {
       report(source, Diagnostic.Kind.ERROR, messageKey, *args)
     } else {
