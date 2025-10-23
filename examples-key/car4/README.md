@@ -33,4 +33,5 @@ ClientCode.java:17: error: Cannot call [switchMode] on State{SUV, COMFORT_ON} | 
 ```
 Identical to output above due to KeY throwing an exception.
 Manual proving required.
+Proving the contract by using the automatic mode of the interactive KeY verifier results in a successful prove.
 ```
