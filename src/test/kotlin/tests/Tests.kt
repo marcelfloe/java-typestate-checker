@@ -23,8 +23,8 @@ private const val dir15 = "cfg"
 //tests for linked list and generics don't work
 val ignore = listOf("linked-list", "generics"/*, dir9, dir14*/)
 //val only = emptyList<String>()
-val only = listOf(dir0, dir1, dir2, dir3)
-//val only = listOf(dir4, dir5, dir6, dir7)
+//val only = listOf(dir0, dir1, dir2, dir3)
+val only = listOf(dir4, dir5, dir6, dir7)
 //val only = listOf(dir8, dir9, dir10, dir11)
 //val only = listOf(dir12, dir13, dir14, dir15)
 
