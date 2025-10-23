@@ -203,17 +203,17 @@ public class TreePrinterWithoutProtocol extends CommonPrinterFeatures {
       Set<JavaType> types = getSuperTypes(javaType);
       types.add(javaType);
 
+      StringBuilder endStates = new StringBuilder().append(localVar.name).append(" == null");
       for(JavaType type : types) {
         if (type.hasProtocol()) {
-          StringBuilder endStates = new StringBuilder().append(localVar.name).append(" == null");
           List<Long> droppableStates = getDroppableStateIDs(type.getGraph().getAllConcreteStates());
           for (long droppableState : droppableStates.stream().distinct().toList()) {
             endStates.append(" || ").append(localVar.name).append(".").append(type).append("State == ").append(droppableState);
           }
-          if (!assertion.isEmpty()) assertion.append(" && ");
-          assertion.append("(").append(endStates).append(")");
         }
       }
+      if (!assertion.isEmpty()) assertion.append(" && ");
+      assertion.append("(").append(endStates).append(")");
     }
     return assertion.toString();
   }
